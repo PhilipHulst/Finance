@@ -6,472 +6,820 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Finance OS">
-<meta name="theme-color" content="#0a1628">
-<link rel="manifest" href="data:application/json,{
-  &quot;name&quot;: &quot;Finance OS — Philip & Teresa&quot;,
-  &quot;short_name&quot;: &quot;Finance OS&quot;,
-  &quot;description&quot;: &quot;Personal finance and portfolio management&quot;,
-  &quot;start_url&quot;: &quot;.&quot;,
-  &quot;display&quot;: &quot;standalone&quot;,
-  &quot;background_color&quot;: &quot;#0a1628&quot;,
-  &quot;theme_color&quot;: &quot;#0a1628&quot;,
-  &quot;icons&quot;: [{
-    &quot;src&quot;: &quot;data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230a1628'/><text y='68' x='50' text-anchor='middle' font-size='55' font-family='system-ui' fill='%23c9962e'>F</text></svg>&quot;,
-    &quot;sizes&quot;: &quot;any&quot;,
-    &quot;type&quot;: &quot;image/svg+xml&quot;
-  }]
-}">
+<meta name="theme-color" content="#120e0a">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <title>Finance OS</title>
 <style>
-:root{
-  --bg:#07111f; --card:#0f1e32; --card2:#162640; --navy:#0a1628;
-  --gold:#c9962e; --gold2:#e8b84b;
-  --border:rgba(255,255,255,.07); --border2:rgba(255,255,255,.13);
-  --text:#e8e3da; --muted:#6e7e98; --hint:#3a4d66;
-  --green:#22c55e; --red:#ef4444; --amber:#f59e0b; --blue:#3b82f6; --purple:#a78bfa;
-  --green-d:rgba(34,197,94,.12); --red-d:rgba(239,68,68,.1); --amber-d:rgba(245,158,11,.1);
-  --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
-  --r:10px; --rl:16px; --rxl:22px;
-}
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;background:var(--bg)}
-body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif;
-  color:var(--text);overflow:hidden;display:flex;flex-direction:column}
+/* ── TOKENS ─────────────────────────────────────────────── */
+:root {
+  /* Warm charcoal — not cold navy */
+  --bg:      #0e0c0a;
+  --bg2:     #141210;
+  --surface: #1c1815;
+  --surface2:#252019;
+  --overlay: #2e2820;
 
-/* ── TOPBAR ── */
-.tb{padding:calc(var(--safe-t)+10px) 16px 10px;display:flex;align-items:center;
-  justify-content:space-between;background:var(--navy);border-bottom:1px solid var(--border);flex-shrink:0}
-.tb-brand{font-size:15px;font-weight:700;letter-spacing:-.02em;color:var(--text)}
-.tb-brand small{display:block;font-size:9px;font-weight:500;color:var(--muted);
-  letter-spacing:.1em;text-transform:uppercase;margin-top:1px}
-.tb-r{display:flex;gap:7px;align-items:center}
-.btn{padding:6px 13px;border-radius:var(--r);border:1px solid var(--border2);background:var(--card2);
-  color:var(--muted);font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;
-  transition:all .12s;white-space:nowrap}
-.btn:active{opacity:.7}
-.btn-gold{background:var(--gold);color:#0a1628;border-color:var(--gold);font-weight:700}
-.btn-sm{padding:4px 10px;font-size:11px}
+  /* Gold system — used boldly */
+  --gold:    #c8922a;
+  --gold2:   #e4b44a;
+  --gold3:   #f0cc7a;
+  --gold-d:  rgba(200,146,42,.12);
+  --gold-d2: rgba(200,146,42,.06);
 
-/* ── NAV ── */
-.nav{display:flex;background:var(--navy);border-bottom:1px solid var(--border);flex-shrink:0}
-.nav-btn{flex:1;padding:9px 2px 8px;text-align:center;background:none;border:none;
-  border-bottom:2px solid transparent;color:var(--muted);font-family:inherit;cursor:pointer;
-  transition:all .12s;font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;
-  display:flex;flex-direction:column;align-items:center;gap:2px}
-.nav-btn .ic{font-size:16px;line-height:1}
-.nav-btn.on{color:var(--gold);border-bottom-color:var(--gold)}
+  /* Semantic */
+  --text:    #ede8e1;
+  --text2:   #a89f94;
+  --text3:   #6b6258;
+  --border:  rgba(255,255,255,.06);
+  --border2: rgba(255,255,255,.11);
+  --border3: rgba(200,146,42,.25);
 
-/* ── CONTENT ── */
-.content{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
-  padding-bottom:calc(var(--safe-b)+8px)}
-.screen{display:none}.screen.on{display:block}
+  /* Status */
+  --green:  #34d399; --green-d: rgba(52,211,153,.1);
+  --red:    #f87171; --red-d:   rgba(248,113,113,.1);
+  --amber:  #fbbf24; --amber-d: rgba(251,191,36,.1);
+  --blue:   #60a5fa; --blue-d:  rgba(96,165,250,.1);
 
-/* ── METRIC CARDS ── */
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px}
-.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:0 14px 14px}
-.card{background:var(--card);border:1px solid var(--border);border-radius:var(--rl);
-  padding:13px;cursor:pointer;position:relative;overflow:hidden;transition:border-color .12s}
-.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--ac,var(--gold))}
-.card:active{border-color:var(--border2)}
-.card.span2{grid-column:1/-1}
-.card-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.11em;color:var(--muted);
-  font-weight:600;margin-bottom:6px}
-.card-val{font-size:21px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
-.card-val.xl{font-size:26px}
-.card-sub{font-size:11px;color:var(--muted);margin-top:4px;font-variant-numeric:tabular-nums}
-.card-d{font-size:12px;font-weight:600;margin-top:4px;font-variant-numeric:tabular-nums}
-.mini-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);
-  padding:10px;text-align:center}
-.mini-card .ml{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);
-  font-weight:600;margin-bottom:4px}
-.mini-card .mv{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1}
-.mini-card .ms{font-size:10px;color:var(--muted);margin-top:3px}
+  /* Radius */
+  --r:   8px;
+  --rl:  14px;
+  --rxl: 22px;
 
-/* ── COLOURS ── */
-.pos{color:var(--green)}.neg{color:var(--red)}.neu{color:var(--muted)}
-.gold{color:var(--gold)}
-
-/* ── SECTION HDR ── */
-.shd{display:flex;align-items:center;justify-content:space-between;padding:16px 14px 8px}
-.shd h3{font-size:9px;text-transform:uppercase;letter-spacing:.13em;color:var(--muted);font-weight:600}
-.shd .act{font-size:12px;color:var(--gold);cursor:pointer;font-weight:500}
-
-/* ── LIST ROWS ── */
-.row{display:flex;align-items:center;padding:11px 14px;border-bottom:1px solid var(--border);
-  cursor:pointer;transition:background .1s;gap:10px}
-.row:active{background:var(--card)}
-.row-ic{width:32px;height:32px;border-radius:var(--r);background:var(--card2);
-  border:1px solid var(--border);display:flex;align-items:center;justify-content:center;
-  font-size:10px;font-weight:700;color:var(--muted);flex-shrink:0;letter-spacing:0}
-.row-b{flex:1;min-width:0}
-.row-t{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.row-s{font-size:11px;color:var(--muted);margin-top:2px;font-variant-numeric:tabular-nums}
-.row-r{text-align:right;flex-shrink:0}
-.row-v{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
-.row-p{font-size:11px;margin-top:2px;font-variant-numeric:tabular-nums}
-
-/* ── FLAGS ── */
-.flags{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px}
-.flag{padding:1px 6px;border-radius:6px;font-size:9px;font-weight:700;letter-spacing:.04em}
-.flag-r{background:var(--red-d);color:#f87171}
-.flag-a{background:var(--amber-d);color:#fbbf24}
-.flag-g{background:var(--green-d);color:#4ade80}
-.flag-b{background:rgba(59,130,246,.12);color:#60a5fa}
-
-/* ── DRIFT BAR ── */
-.drift-row{display:flex;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);gap:10px}
-.drift-lbl{font-size:11px;font-weight:500;width:108px;flex-shrink:0;line-height:1.3}
-.drift-track{flex:1;height:7px;background:rgba(255,255,255,.05);border-radius:4px;
-  position:relative;overflow:visible}
-.drift-tgt{position:absolute;top:-2px;width:2px;height:11px;background:rgba(255,255,255,.3);border-radius:1px}
-.drift-fill{height:100%;border-radius:4px;transition:width .5s ease}
-.drift-fill.ok{background:var(--green)}
-.drift-fill.warn{background:var(--amber)}
-.drift-fill.over{background:var(--red)}
-.drift-nums{font-size:11px;font-variant-numeric:tabular-nums;color:var(--muted);
-  text-align:right;width:76px;flex-shrink:0}
-.drift-delta{font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;width:38px;text-align:right}
-
-/* ── HORIZ BAR ── */
-.hbar-row{display:flex;align-items:center;padding:8px 14px;border-bottom:1px solid var(--border);gap:8px}
-.hbar-lbl{font-size:11px;font-weight:500;width:90px;flex-shrink:0}
-.hbar-track{flex:1;height:5px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden}
-.hbar-fill{height:100%;border-radius:3px;transition:width .5s ease}
-.hbar-val{font-size:11px;font-variant-numeric:tabular-nums;color:var(--muted);width:38px;text-align:right}
-.hbar-badge{font-size:9px;font-weight:700;padding:1px 6px;border-radius:5px}
-
-/* ── WARN BANNERS ── */
-.warn{display:flex;align-items:flex-start;gap:8px;margin:6px 14px;border-radius:var(--r);
-  padding:9px 11px;font-size:12px;font-weight:500;line-height:1.4}
-.warn-r{background:var(--red-d);border:1px solid rgba(239,68,68,.2);color:#f87171}
-.warn-a{background:var(--amber-d);border:1px solid rgba(245,158,11,.18);color:#fbbf24}
-.warn-g{background:var(--green-d);border:1px solid rgba(34,197,94,.2);color:#4ade80}
-.warn-icon{font-size:13px;flex-shrink:0;margin-top:1px}
-
-/* ── SCREENER ── */
-.sc-score{width:88px;height:88px;border-radius:50%;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;margin:0 auto 12px;border:3px solid var(--border2)}
-.sc-score .sv{font-size:26px;font-weight:800;line-height:1}
-.sc-score .sl{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-top:2px}
-.chk{display:flex;align-items:flex-start;gap:9px;padding:9px 0;border-bottom:1px solid var(--border)}
-.chk-dot{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;
-  justify-content:center;font-size:10px;flex-shrink:0;margin-top:1px;font-weight:700}
-.chk-dot.p{background:var(--green-d);color:var(--green)}
-.chk-dot.w{background:var(--amber-d);color:var(--amber)}
-.chk-dot.f{background:var(--red-d);color:var(--red)}
-.chk-t{font-size:12px;font-weight:500;margin-bottom:2px}
-.chk-d{font-size:11px;color:var(--muted);line-height:1.4}
-.size-box{background:var(--card);border:1px solid var(--border);border-radius:var(--rl);
-  padding:14px;margin:12px 0}
-.size-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;
-  border-bottom:1px solid var(--border);font-size:12px}
-.size-row:last-child{border-bottom:none;font-size:14px;font-weight:700;padding-top:10px}
-
-/* ── P&L ── */
-.yr-tabs{display:flex;gap:5px;padding:12px 14px 4px;overflow-x:auto;scrollbar-width:none}
-.yr-tabs::-webkit-scrollbar{display:none}
-.yr-tab{padding:5px 13px;border-radius:20px;font-size:12px;cursor:pointer;border:1px solid var(--border);
-  background:transparent;color:var(--muted);font-family:inherit;font-weight:500;white-space:nowrap}
-.yr-tab.on{background:var(--gold);color:var(--navy);border-color:var(--gold)}
-.pl-sec{padding:10px 14px 3px;font-size:9px;text-transform:uppercase;letter-spacing:.11em;
-  color:var(--muted);font-weight:600;display:flex;justify-content:space-between;align-items:center}
-.pl-row{display:flex;justify-content:space-between;padding:9px 14px;border-bottom:1px solid var(--border);font-size:13px}
-.pl-row .lb{color:var(--muted)}.pl-row .lb.dk{color:var(--text);font-weight:500}
-.pl-row.tot{background:var(--card)}
-.pl-row.sur{font-size:16px;font-weight:700;padding:13px 14px;border:none}
-
-/* ── DEBT ── */
-.debt-bar{height:20px;background:rgba(255,255,255,.04);border-radius:var(--r);
-  overflow:hidden;display:flex;margin:10px 0 5px}
-.debt-pd{background:var(--green-d);display:flex;align-items:center;justify-content:center;
-  font-size:10px;color:var(--green);font-weight:600;transition:width .5s ease}
-.debt-lf{flex:1;background:var(--red-d);display:flex;align-items:center;justify-content:center;
-  font-size:10px;color:var(--red);font-weight:600}
-.debt-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
-.dst{background:var(--bg);border-radius:var(--r);padding:10px}
-.dst .dl{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:3px;font-weight:600}
-.dst .dv{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
-
-/* ── SCHED ── */
-.sched{overflow-x:auto}
-.sched table{width:100%;border-collapse:collapse;font-size:11px;font-variant-numeric:tabular-nums}
-.sched th{padding:7px 10px;text-align:right;background:var(--card);border-bottom:1px solid var(--border);
-  color:var(--muted);font-weight:600;white-space:nowrap;font-size:9px;text-transform:uppercase;letter-spacing:.07em}
-.sched th:first-child{text-align:left}
-.sched td{padding:6px 10px;text-align:right;border-bottom:1px solid var(--border)}
-.sched td:first-child{text-align:left}
-.sched tr.cur td{background:rgba(201,150,46,.08);color:var(--gold);font-weight:600}
-.sched tr:hover td{background:var(--card)}
-
-/* ── SETTINGS ── */
-.set-grp{margin:0 14px 12px;background:var(--card);border:1px solid var(--border);
-  border-radius:var(--rl);overflow:hidden}
-.set-row{display:flex;align-items:center;padding:13px 14px;border-bottom:1px solid var(--border);
-  cursor:pointer;transition:background .1s;gap:10px}
-.set-row:last-child{border-bottom:none}
-.set-row:active{background:var(--card2)}
-.set-lbl{flex:1;font-size:13px}
-.set-val{font-size:13px;color:var(--gold);font-weight:500;font-variant-numeric:tabular-nums}
-.set-arr{color:var(--muted);font-size:12px}
-
-/* ── MODAL ── */
-.ovl{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:200;align-items:flex-end}
-.ovl.on{display:flex}
-.sheet{background:var(--card);border-radius:var(--rxl) var(--rxl) 0 0;width:100%;
-  padding-bottom:calc(var(--safe-b)+8px);max-height:92vh;overflow-y:auto;
-  animation:sup .25s cubic-bezier(.34,1.1,.64,1)}
-@keyframes sup{from{transform:translateY(100%)}to{transform:translateY(0)}}
-.sh-hnd{width:34px;height:4px;background:var(--border2);border-radius:2px;margin:11px auto 0}
-.sh-hd{display:flex;align-items:center;justify-content:space-between;padding:13px 18px;
-  border-bottom:1px solid var(--border)}
-.sh-hd h3{font-size:16px;font-weight:700}
-.sh-cl{width:28px;height:28px;border-radius:50%;border:1px solid var(--border);
-  background:var(--card2);color:var(--muted);cursor:pointer;font-size:13px;
-  display:flex;align-items:center;justify-content:center}
-.sh-bd{padding:16px 18px}
-.fld{margin-bottom:13px}
-.fld label{display:block;font-size:10px;font-weight:600;text-transform:uppercase;
-  letter-spacing:.09em;color:var(--muted);margin-bottom:5px}
-.fld input,.fld select,.fld textarea{width:100%;background:var(--bg);border:1px solid var(--border2);
-  border-radius:var(--r);padding:11px 13px;color:var(--text);font-size:15px;
-  font-family:inherit;outline:none;transition:border-color .12s;-webkit-appearance:none}
-.fld input:focus,.fld select:focus{border-color:var(--gold)}
-.fld .hint{font-size:11px;color:var(--hint);margin-top:3px;line-height:1.4}
-.fld-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.sbtn{width:100%;padding:14px;background:var(--gold);color:#0a1628;border:none;border-radius:var(--rl);
-  font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:6px;transition:opacity .12s}
-.sbtn:active{opacity:.8}
-.dbtn{width:100%;padding:11px;background:none;border:1px solid rgba(239,68,68,.3);
-  border-radius:var(--rl);color:#f87171;font-size:14px;cursor:pointer;margin-top:7px;font-family:inherit}
-.note-box{background:rgba(201,150,46,.08);border:1px solid rgba(201,150,46,.2);border-radius:var(--r);
-  padding:9px 11px;font-size:11px;color:#fbbf24;line-height:1.5;margin-bottom:13px}
-.disc-box{background:var(--red-d);border:1px solid rgba(239,68,68,.2);border-radius:var(--r);
-  padding:9px 11px;font-size:11px;color:#f87171;line-height:1.5;margin-top:12px}
-
-/* ── PROJ BARS ── */
-.proj-bars{display:flex;align-items:flex-end;gap:5px;height:100px;padding:0 14px}
-.proj-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
-  height:100%;justify-content:flex-end}
-.proj-bar{width:100%;border-radius:3px 3px 0 0;min-height:4px;transition:height .5s ease}
-.proj-bar.c{background:rgba(59,130,246,.3);border:1px solid rgba(59,130,246,.4)}
-.proj-bar.f{background:rgba(201,150,46,.3);border:1px solid rgba(201,150,46,.4)}
-
-/* ── LIVE ── */
-.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);
-  animation:pulse 2s infinite;display:inline-block}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-
-/* ── TOAST ── */
-.toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%) translateY(4px);
-  background:var(--card2);border:1px solid var(--border2);border-radius:var(--r);
-  padding:8px 16px;font-size:12px;font-weight:500;z-index:400;opacity:0;
-  transition:all .2s;pointer-events:none;white-space:nowrap}
-.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
-
-/* ── TABLET ── */
-@media(min-width:540px){
-  body{max-width:420px;margin:0 auto;box-shadow:0 0 100px rgba(0,0,0,.95)}
-  html{display:flex;justify-content:center;background:#040a14}
+  /* Safe areas */
+  --st: env(safe-area-inset-top,0px);
+  --sb: env(safe-area-inset-bottom,0px);
 }
 
-/* ── HISTORY ── */
-.hist-bar-row{display:flex;align-items:center;gap:8px;padding:5px 14px}
-.hist-bar-lbl{font-size:10px;color:var(--muted);width:32px;text-align:right;flex-shrink:0;font-variant-numeric:tabular-nums}
-.hist-bar-track{flex:1;height:14px;background:rgba(255,255,255,.04);border-radius:3px;overflow:hidden;cursor:pointer;position:relative}
-.hist-bar-fill{height:100%;border-radius:3px;transition:width .4s ease;display:flex;align-items:center;padding-left:5px}
-.hist-bar-val{font-size:9px;font-weight:600;color:rgba(255,255,255,.7);white-space:nowrap;font-variant-numeric:tabular-nums}
-.tx-row{display:flex;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);gap:9px}
-.tx-type{font-size:9px;font-weight:700;letter-spacing:.05em;padding:2px 7px;border-radius:5px;flex-shrink:0;width:52px;text-align:center}
-.tx-type.buy{background:rgba(34,197,94,.15);color:var(--green)}
-.tx-type.sell{background:rgba(239,68,68,.12);color:var(--red)}
-.tx-type.div{background:rgba(59,130,246,.12);color:var(--blue)}
-.tx-body{flex:1;min-width:0}
-.tx-name{font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tx-date{font-size:10px;color:var(--muted);margin-top:1px}
-.tx-amt{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;text-align:right;flex-shrink:0}
-.stat-2{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 14px 14px}
-.stat-box{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:11px}
-.stat-box .sl{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:600;margin-bottom:4px}
-.stat-box .sv{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums}
-.stat-box .ss{font-size:10px;color:var(--muted);margin-top:2px}
-.yr-bar-wrap{padding:0 14px 8px}
-.yr-bar-row{display:flex;align-items:center;gap:6px;margin-bottom:5px}
-.yr-bar-lbl{font-size:10px;color:var(--muted);width:34px;text-align:right;flex-shrink:0}
-.yr-bar-track{flex:1;height:18px;background:rgba(255,255,255,.04);border-radius:3px;overflow:hidden;position:relative}
-.yr-bar-inv{height:100%;background:rgba(59,130,246,.35);border-radius:3px;display:flex;align-items:center;padding-left:5px;font-size:9px;color:rgba(255,255,255,.6);white-space:nowrap;font-variant-numeric:tabular-nums}
-.yr-bar-div{position:absolute;right:0;top:0;height:100%;background:rgba(34,197,94,.5);display:flex;align-items:center;padding-right:4px;font-size:9px;color:rgba(255,255,255,.8)}
+/* ── RESET ──────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; background: var(--bg); }
+body {
+  font-family: 'DM Sans', -apple-system, sans-serif;
+  color: var(--text);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  /* Subtle noise texture */
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+}
 
+/* ── TOPBAR ─────────────────────────────────────────────── */
+.tb {
+  padding: calc(var(--st) + 12px) 18px 12px;
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  position: relative;
+}
+.tb::after {
+  content: '';
+  position: absolute; bottom: 0; left: 18px; right: 18px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold-d2), var(--gold-d), var(--gold-d2), transparent);
+}
+.tb-brand {
+  display: flex; flex-direction: column; gap: 1px;
+}
+.tb-name {
+  font-family: 'DM Serif Display', serif;
+  font-size: 18px;
+  font-weight: 400;
+  letter-spacing: -.01em;
+  color: var(--text);
+  line-height: 1;
+}
+.tb-sub {
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+.tb-r { display: flex; gap: 8px; align-items: center; }
+
+.btn {
+  padding: 6px 13px;
+  border-radius: var(--r);
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  color: var(--text2);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all .15s;
+  letter-spacing: .01em;
+}
+.btn:active { opacity: .65; transform: scale(.97); }
+.btn-gold {
+  background: var(--gold);
+  color: var(--bg);
+  border-color: var(--gold);
+  font-weight: 600;
+}
+.price-pill {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 10px; color: var(--text3);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 4px 10px;
+}
+.live-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--green);
+  animation: pulse 2.5s ease-in-out infinite;
+  flex-shrink: 0;
+}
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.35;transform:scale(.8)} }
+
+/* ── NAV ────────────────────────────────────────────────── */
+.nav {
+  display: flex;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.nav::-webkit-scrollbar { display: none; }
+.nav-btn {
+  flex: 1; min-width: 52px;
+  padding: 10px 4px 9px;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  background: none; border: none; border-bottom: 2px solid transparent;
+  color: var(--text3);
+  font-family: inherit;
+  font-size: 9px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .06em;
+  cursor: pointer;
+  transition: color .15s, border-color .15s;
+}
+.nav-icon {
+  width: 18px; height: 18px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.nav-icon svg { width: 15px; height: 15px; stroke: currentColor; stroke-width: 1.6; fill: none; }
+.nav-btn.on { color: var(--gold); border-bottom-color: var(--gold); }
+
+/* ── CONTENT ────────────────────────────────────────────── */
+.content {
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(var(--sb) + 12px);
+}
+.screen {
+  display: none;
+  animation: fadeUp .2s ease;
+}
+.screen.on { display: block; }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── SECTION HEADER ─────────────────────────────────────── */
+.sec {
+  display: flex; align-items: baseline; justify-content: space-between;
+  padding: 20px 18px 9px;
+}
+.sec-title {
+  font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .12em;
+  color: var(--text3);
+}
+.sec-action {
+  font-size: 12px; color: var(--gold); cursor: pointer; font-weight: 500;
+  transition: opacity .12s;
+}
+.sec-action:active { opacity: .6; }
+
+/* ── HERO CARD (net worth) ──────────────────────────────── */
+.hero {
+  margin: 16px 18px 0;
+  background: linear-gradient(135deg, var(--surface) 0%, var(--surface2) 100%);
+  border: 1px solid var(--border3);
+  border-radius: var(--rl);
+  padding: 20px 20px 18px;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+.hero::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+.hero::after {
+  content: '';
+  position: absolute; bottom: -40px; right: -40px;
+  width: 140px; height: 140px;
+  background: radial-gradient(circle, rgba(200,146,42,.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-lbl {
+  font-size: 9px; font-weight: 600; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--text3); margin-bottom: 8px;
+}
+.hero-val {
+  font-family: 'DM Serif Display', serif;
+  font-size: 38px; font-weight: 400;
+  color: var(--text); line-height: 1;
+  letter-spacing: -.02em;
+  font-variant-numeric: tabular-nums;
+}
+.hero-sub {
+  font-size: 11px; color: var(--text3); margin-top: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── STAT GRID ──────────────────────────────────────────── */
+.stat-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 10px; padding: 10px 18px 0;
+}
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--rl);
+  padding: 14px;
+  cursor: pointer;
+  transition: border-color .15s;
+  position: relative; overflow: hidden;
+}
+.stat-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: var(--ac, transparent);
+  opacity: .8;
+}
+.stat-card:active { border-color: var(--border2); }
+.stat-lbl {
+  font-size: 9px; font-weight: 600; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--text3); margin-bottom: 7px;
+}
+.stat-val {
+  font-family: 'DM Serif Display', serif;
+  font-size: 20px; line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.stat-d { font-size: 11px; margin-top: 5px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.stat-sub { font-size: 11px; color: var(--text3); margin-top: 4px; font-variant-numeric: tabular-nums; }
+
+/* ── MINI KPI GRID (3-col) ──────────────────────────────── */
+.kpi3 {
+  display: grid; grid-template-columns: repeat(3,1fr);
+  gap: 8px; padding: 0 18px 16px;
+}
+.kpi {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 11px 10px; text-align: center;
+}
+.kpi-l { font-size: 8px; font-weight: 600; letter-spacing: .11em; text-transform: uppercase; color: var(--text3); margin-bottom: 5px; }
+.kpi-v { font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1; }
+.kpi-s { font-size: 9px; color: var(--text3); margin-top: 3px; line-height: 1.3; }
+
+/* ── ALERT BANNERS ──────────────────────────────────────── */
+.alert {
+  display: flex; align-items: flex-start; gap: 9px;
+  margin: 5px 18px;
+  padding: 10px 12px;
+  border-radius: var(--r);
+  font-size: 12px; font-weight: 400; line-height: 1.5;
+  border-width: 1px; border-style: solid;
+}
+.alert-r { background: var(--red-d);   border-color: rgba(248,113,113,.2); color: #fca5a5; }
+.alert-a { background: var(--amber-d); border-color: rgba(251,191,36,.18); color: #fcd34d; }
+.alert-g { background: var(--green-d); border-color: rgba(52,211,153,.2);  color: #6ee7b7; }
+.alert-icon { font-size: 12px; flex-shrink: 0; margin-top: 1px; }
+
+/* ── LIST ROWS ──────────────────────────────────────────── */
+.row {
+  display: flex; align-items: center;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer; gap: 12px;
+  transition: background .1s;
+}
+.row:active { background: var(--surface); }
+.row-badge {
+  width: 34px; height: 34px;
+  border-radius: var(--r);
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 700; color: var(--text3);
+  flex-shrink: 0; letter-spacing: 0; text-transform: uppercase;
+}
+.row-b { flex: 1; min-width: 0; }
+.row-t { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row-s { font-size: 11px; color: var(--text3); margin-top: 2px; font-variant-numeric: tabular-nums; }
+.row-r { text-align: right; flex-shrink: 0; }
+.row-v { font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.row-p { font-size: 11px; margin-top: 2px; font-variant-numeric: tabular-nums; }
+
+/* ── FLAGS ──────────────────────────────────────────────── */
+.flags { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 4px; }
+.flag {
+  padding: 1px 6px; border-radius: 5px;
+  font-size: 8px; font-weight: 700; letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.flag-r { background: var(--red-d);   color: #f87171; }
+.flag-a { background: var(--amber-d); color: #fbbf24; }
+.flag-g { background: var(--green-d); color: #34d399; }
+.flag-b { background: var(--blue-d);  color: #60a5fa; }
+
+/* ── DRIFT BARS ─────────────────────────────────────────── */
+.drift-row {
+  display: flex; align-items: center;
+  padding: 10px 18px; border-bottom: 1px solid var(--border);
+  gap: 10px;
+}
+.drift-lbl { font-size: 11px; font-weight: 500; width: 114px; flex-shrink: 0; color: var(--text2); line-height: 1.3; }
+.drift-track {
+  flex: 1; height: 6px;
+  background: rgba(255,255,255,.05);
+  border-radius: 3px; position: relative; overflow: visible;
+}
+.drift-tgt {
+  position: absolute; top: -3px;
+  width: 1.5px; height: 12px;
+  background: rgba(255,255,255,.25); border-radius: 1px;
+}
+.drift-fill { height: 100%; border-radius: 3px; transition: width .5s ease; }
+.drift-fill.ok   { background: var(--green); }
+.drift-fill.warn { background: var(--amber); }
+.drift-fill.over { background: var(--red); }
+.drift-nums { font-size: 10px; font-variant-numeric: tabular-nums; color: var(--text3); width: 72px; text-align: right; flex-shrink: 0; }
+.drift-delta { font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; width: 40px; text-align: right; flex-shrink: 0; }
+
+/* ── HORIZ BAR ──────────────────────────────────────────── */
+.hbar {
+  display: flex; align-items: center;
+  padding: 9px 18px; border-bottom: 1px solid var(--border); gap: 10px;
+}
+.hbar-lbl { font-size: 11px; font-weight: 500; width: 88px; flex-shrink: 0; color: var(--text2); }
+.hbar-track { flex: 1; height: 4px; background: rgba(255,255,255,.05); border-radius: 2px; overflow: hidden; }
+.hbar-fill { height: 100%; border-radius: 2px; transition: width .5s ease; }
+.hbar-pct { font-size: 11px; font-variant-numeric: tabular-nums; color: var(--text3); width: 36px; text-align: right; }
+.hbar-badge { font-size: 8px; font-weight: 700; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; letter-spacing: .04em; }
+
+/* ── PROJ BARS ──────────────────────────────────────────── */
+.proj-bars {
+  display: flex; align-items: flex-end; gap: 6px;
+  height: 90px; padding: 0 18px;
+}
+.proj-col { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; }
+.proj-bar { width: 100%; border-radius: 3px 3px 0 0; min-height: 4px; transition: height .6s ease; }
+.proj-bar.cur { background: linear-gradient(180deg, rgba(96,165,250,.5), rgba(96,165,250,.25)); border: 1px solid rgba(96,165,250,.4); }
+.proj-bar.fut { background: linear-gradient(180deg, rgba(200,146,42,.5), rgba(200,146,42,.2));  border: 1px solid rgba(200,146,42,.35); }
+.proj-lbl-row { display: flex; gap: 6px; padding: 5px 18px 16px; }
+.proj-lbl { flex: 1; text-align: center; font-size: 9px; color: var(--text3); font-variant-numeric: tabular-nums; }
+.proj-lbl span { display: block; color: var(--text2); font-weight: 500; margin-top: 1px; }
+
+/* ── P&L ────────────────────────────────────────────────── */
+.yr-tabs { display: flex; gap: 6px; padding: 14px 18px 6px; overflow-x: auto; scrollbar-width: none; }
+.yr-tabs::-webkit-scrollbar { display: none; }
+.yr-tab {
+  padding: 5px 14px; border-radius: 20px;
+  font-size: 12px; cursor: pointer;
+  border: 1px solid var(--border2);
+  background: transparent; color: var(--text3);
+  font-family: inherit; font-weight: 500;
+  white-space: nowrap; transition: all .12s;
+}
+.yr-tab.on { background: var(--gold); color: var(--bg); border-color: var(--gold); }
+.pl-head {
+  padding: 12px 18px 4px;
+  font-size: 9px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: .12em; color: var(--text3);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.pl-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 18px; border-bottom: 1px solid var(--border); font-size: 13px;
+}
+.pl-row .lb { color: var(--text3); }
+.pl-row .lb.dk { color: var(--text); font-weight: 500; }
+.pl-row.tot { background: var(--surface); }
+.pl-row.sur { font-size: 17px; font-weight: 600; padding: 14px 18px; border: none; }
+
+/* ── DEBT ────────────────────────────────────────────────── */
+.debt-progress {
+  height: 6px; background: rgba(255,255,255,.05); border-radius: 3px;
+  overflow: hidden; margin: 12px 0 6px;
+}
+.debt-progress-fill { height: 100%; background: var(--gold); border-radius: 3px; transition: width .6s ease; }
+.debt-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+.d-stat { background: var(--bg2); border-radius: var(--r); padding: 10px; }
+.d-stat-l { font-size: 9px; text-transform: uppercase; letter-spacing: .08em; color: var(--text3); margin-bottom: 4px; font-weight: 600; }
+.d-stat-v { font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* ── SCHEDULE TABLE ─────────────────────────────────────── */
+.sched { overflow-x: auto; }
+.sched table { width: 100%; border-collapse: collapse; font-size: 11px; font-variant-numeric: tabular-nums; }
+.sched th { padding: 8px 10px; text-align: right; background: var(--surface); border-bottom: 1px solid var(--border); color: var(--text3); font-weight: 600; white-space: nowrap; font-size: 9px; text-transform: uppercase; letter-spacing: .07em; }
+.sched th:first-child { text-align: left; }
+.sched td { padding: 7px 10px; text-align: right; border-bottom: 1px solid var(--border); color: var(--text2); }
+.sched td:first-child { text-align: left; color: var(--text); }
+.sched tr.cur td { background: var(--gold-d); color: var(--gold2); font-weight: 600; }
+.sched tr:hover td { background: var(--surface); }
+
+/* ── SETTINGS ───────────────────────────────────────────── */
+.set-grp { margin: 0 18px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--rl); overflow: hidden; }
+.set-row { display: flex; align-items: center; padding: 13px 16px; border-bottom: 1px solid var(--border); cursor: pointer; gap: 10px; transition: background .1s; }
+.set-row:last-child { border-bottom: none; }
+.set-row:active { background: var(--surface2); }
+.set-lbl { flex: 1; font-size: 13px; color: var(--text); }
+.set-val { font-size: 12px; color: var(--gold); font-weight: 500; font-variant-numeric: tabular-nums; }
+.set-arr { color: var(--text3); font-size: 14px; }
+
+/* ── HISTORY ────────────────────────────────────────────── */
+.hist-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 0 18px 16px; }
+.h-stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 12px; }
+.h-stat .hl { font-size: 9px; text-transform: uppercase; letter-spacing: .1em; color: var(--text3); font-weight: 600; margin-bottom: 5px; }
+.h-stat .hv { font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.h-stat .hs { font-size: 10px; color: var(--text3); margin-top: 3px; }
+.hbar2 { display: flex; align-items: center; padding: 6px 18px; gap: 10px; }
+.hbar2-lbl { font-size: 10px; color: var(--text3); width: 36px; text-align: right; flex-shrink: 0; font-variant-numeric: tabular-nums; }
+.hbar2-track { flex: 1; height: 16px; background: rgba(255,255,255,.04); border-radius: 4px; overflow: hidden; position: relative; }
+.hbar2-fill { height: 100%; border-radius: 4px; display: flex; align-items: center; padding-left: 8px; }
+.hbar2-name { font-size: 9px; font-weight: 600; color: rgba(255,255,255,.65); white-space: nowrap; }
+.yr-bar-row { display: flex; align-items: center; gap: 8px; padding: 5px 18px; }
+.yr-bar-lbl { font-size: 10px; color: var(--text3); width: 36px; text-align: right; flex-shrink: 0; }
+.yr-bar-track { flex: 1; height: 20px; background: rgba(255,255,255,.04); border-radius: 4px; overflow: hidden; position: relative; }
+.yr-bar-inv { height: 100%; background: rgba(96,165,250,.3); border-radius: 4px; display: flex; align-items: center; padding-left: 8px; font-size: 9px; color: rgba(255,255,255,.55); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.yr-bar-div-amt { font-size: 9px; color: var(--green); width: 48px; text-align: right; flex-shrink: 0; }
+.tx-row { display: flex; align-items: center; padding: 10px 18px; border-bottom: 1px solid var(--border); gap: 10px; }
+.tx-pill { font-size: 8px; font-weight: 700; letter-spacing: .06em; padding: 3px 8px; border-radius: 5px; flex-shrink: 0; width: 48px; text-align: center; text-transform: uppercase; }
+.tx-pill.buy  { background: var(--green-d); color: var(--green); }
+.tx-pill.sell { background: var(--red-d);   color: var(--red); }
+.tx-pill.div  { background: var(--blue-d);  color: var(--blue); }
+.tx-b { flex: 1; min-width: 0; }
+.tx-n { font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tx-d { font-size: 10px; color: var(--text3); margin-top: 1px; }
+.tx-amt { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+
+/* ── SCREENER ───────────────────────────────────────────── */
+.score-ring {
+  width: 96px; height: 96px; border-radius: 50%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  margin: 0 auto 16px;
+  border: 2.5px solid var(--border2);
+  position: relative;
+}
+.score-ring::after {
+  content: '';
+  position: absolute; inset: -6px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--ring-glow, rgba(200,146,42,.05)), transparent 70%);
+}
+.score-val { font-family: 'DM Serif Display', serif; font-size: 28px; line-height: 1; }
+.score-lbl { font-size: 8px; text-transform: uppercase; letter-spacing: .1em; color: var(--text3); margin-top: 2px; }
+.chk-row { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.chk-ic { width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+.chk-ic.p { background: var(--green-d); color: var(--green); }
+.chk-ic.w { background: var(--amber-d); color: var(--amber); }
+.chk-ic.f { background: var(--red-d);   color: var(--red); }
+.chk-title { font-size: 12px; font-weight: 500; margin-bottom: 2px; }
+.chk-desc  { font-size: 11px; color: var(--text3); line-height: 1.5; }
+.size-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rl); padding: 14px; margin: 12px 0; }
+.size-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 12px; color: var(--text2); }
+.size-row:last-child { border: none; font-size: 14px; font-weight: 600; color: var(--text); padding-top: 11px; }
+.size-row:last-child span:last-child { color: var(--gold); }
+
+/* ── MODAL ──────────────────────────────────────────────── */
+.ovl { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 200; align-items: flex-end; backdrop-filter: blur(2px); }
+.ovl.on { display: flex; }
+.sheet {
+  background: var(--surface);
+  border-radius: var(--rxl) var(--rxl) 0 0;
+  width: 100%;
+  padding-bottom: calc(var(--sb) + 8px);
+  max-height: 92vh; overflow-y: auto;
+  animation: slideUp .24s cubic-bezier(.34,1.1,.64,1);
+  border-top: 1px solid var(--border2);
+}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.sh-handle { width: 36px; height: 4px; background: var(--border2); border-radius: 2px; margin: 12px auto 0; }
+.sh-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid var(--border); }
+.sh-head h3 { font-family: 'DM Serif Display', serif; font-size: 18px; font-weight: 400; }
+.sh-close { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border2); background: var(--surface2); color: var(--text3); cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center; transition: all .12s; }
+.sh-close:active { background: var(--overlay); }
+.sh-body { padding: 18px 20px; }
+
+/* ── FORM ───────────────────────────────────────────────── */
+.fld { margin-bottom: 14px; }
+.fld label { display: block; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; color: var(--text3); margin-bottom: 6px; }
+.fld input, .fld select {
+  width: 100%; background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: var(--r);
+  padding: 11px 14px; color: var(--text);
+  font-size: 15px; font-family: inherit;
+  outline: none; transition: border-color .15s;
+  -webkit-appearance: none;
+}
+.fld input:focus, .fld select:focus { border-color: var(--gold); }
+.fld .hint { font-size: 10px; color: var(--text3); margin-top: 4px; line-height: 1.4; }
+.fld-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.sbtn {
+  width: 100%; padding: 14px;
+  background: var(--gold); color: var(--bg);
+  border: none; border-radius: var(--rl);
+  font-size: 15px; font-weight: 600;
+  cursor: pointer; font-family: inherit;
+  margin-top: 8px; transition: opacity .12s;
+  letter-spacing: .01em;
+}
+.sbtn:active { opacity: .8; }
+.dbtn {
+  width: 100%; padding: 11px;
+  background: none; border: 1px solid rgba(248,113,113,.25);
+  border-radius: var(--rl); color: #f87171;
+  font-size: 14px; cursor: pointer; margin-top: 8px; font-family: inherit;
+}
+.note-box { background: var(--gold-d2); border: 1px solid var(--border3); border-radius: var(--r); padding: 10px 12px; font-size: 11px; color: var(--gold2); line-height: 1.5; margin-bottom: 14px; }
+.disc-box { background: var(--red-d); border: 1px solid rgba(248,113,113,.2); border-radius: var(--r); padding: 10px 12px; font-size: 11px; color: #fca5a5; line-height: 1.5; margin-top: 12px; }
+
+/* ── TOAST ──────────────────────────────────────────────── */
+.toast {
+  position: fixed; bottom: 80px; left: 50%;
+  transform: translateX(-50%) translateY(6px);
+  background: var(--surface2); border: 1px solid var(--border3);
+  border-radius: 20px; padding: 8px 18px;
+  font-size: 12px; font-weight: 500;
+  z-index: 400; opacity: 0;
+  transition: all .22s; pointer-events: none; white-space: nowrap;
+  color: var(--text);
+}
+.toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── UTILITY ────────────────────────────────────────────── */
+.pos { color: var(--green); }
+.neg { color: var(--red); }
+.neu { color: var(--text3); }
+.gold { color: var(--gold); }
+.divider { height: 1px; background: var(--border); margin: 4px 0; }
+
+/* ── DESKTOP ────────────────────────────────────────────── */
+@media(min-width:560px){
+  body { max-width: 430px; margin: 0 auto; box-shadow: 0 0 120px rgba(0,0,0,.98); }
+  html { display: flex; justify-content: center; background: #060504; }
+}
+
+/* ── PORTFOLIO ROWS (improved) ── */
+.port-row {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  padding: 12px 18px; border-bottom: 1px solid var(--border);
+  cursor: pointer; transition: background .1s; gap: 10px;
+}
+.port-row:active { background: var(--surface); }
+.port-row-left { display: flex; gap: 10px; flex: 1; min-width: 0; }
+.port-badge {
+  width: 32px; height: 32px; flex-shrink: 0;
+  border-radius: var(--r); border: 1px solid;
+  display: flex; align-items: center; justify-content: center;
+}
+.port-row-body { flex: 1; min-width: 0; }
+.port-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.port-meta { font-size: 10px; color: var(--text3); margin-top: 2px; font-variant-numeric: tabular-nums; }
+.port-row-right { text-align: right; flex-shrink: 0; min-width: 100px; }
+.port-value { font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.port-gl { font-size: 11px; font-weight: 500; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.port-weight { font-size: 10px; color: var(--text3); margin-top: 2px; font-variant-numeric: tabular-nums; }
+
+/* ── SORT TABS ── */
+.sort-tabs { display: flex; gap: 4px; padding: 10px 18px 4px; }
+.sort-tab {
+  padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 500;
+  border: 1px solid var(--border); background: transparent;
+  color: var(--text3); font-family: inherit; cursor: pointer; transition: all .12s;
+}
+.sort-tab.on { background: var(--surface2); color: var(--text); border-color: var(--border2); }
+
+/* ── ANALYTICS KPI (new) ── */
+.anlx-kpi {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 12px 12px 10px;
+}
+.anlx-kpi-lbl { font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; color: var(--text3); margin-bottom: 5px; }
+.anlx-kpi-val { font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; margin-bottom: 3px; }
+.anlx-kpi-sub { font-size: 9px; color: var(--text3); line-height: 1.3; margin-bottom: 6px; min-height: 24px; }
+.anlx-kpi-bar { height: 2px; background: rgba(255,255,255,.06); border-radius: 1px; overflow: hidden; }
+.anlx-kpi-bar-fill { height: 100%; border-radius: 1px; transition: width .6s ease; background: currentColor; opacity: .5; }
+.anlx-kpi-bar-fill.pos { background: var(--green); opacity:.6; }
+.anlx-kpi-bar-fill.neg { background: var(--red); opacity:.5; }
+.anlx-kpi-bar-fill.gold { background: var(--gold); opacity:.6; }
+.anlx-kpi-bar-fill.neu { background: var(--text3); opacity:.4; }
+
+/* ── INCOME BREAKDOWN ── */
+.income-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 18px; border-bottom: 1px solid var(--border);
+}
+.income-name { font-size: 11px; font-weight: 500; width: 100px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.income-bar-wrap { flex: 1; height: 4px; background: rgba(255,255,255,.05); border-radius: 2px; overflow: hidden; }
+.income-bar { height: 100%; border-radius: 2px; background: var(--gold); opacity: .75; transition: width .5s ease; }
+.income-nums { font-size: 10px; color: var(--text3); font-variant-numeric: tabular-nums; width: 132px; text-align: right; flex-shrink: 0; }
 
 </style>
 </head>
 <body>
 
-
-</div>
 <!-- TOPBAR -->
 <div class="tb">
-  <div class="tb-brand">Finance OS <small>Philip & Teresa</small></div>
+  <div class="tb-brand">
+    <div class="tb-name">Finance OS</div>
+    <div class="tb-sub">Philip &amp; Teresa</div>
+  </div>
   <div class="tb-r">
-    <span style="font-size:11px;color:var(--muted)" id="price-status">
-      <span class="live-dot" style="background:var(--muted)"></span> —
-    </span>
-    <button class="btn btn-sm" id="refresh-btn" onclick="refreshPrices()">⟳ Prices</button>
-    <button class="btn btn-gold btn-sm" onclick="openModal('editBS')">Edit</button>
+    <div class="price-pill" id="price-status">
+      <span class="live-dot" style="background:var(--text3)"></span>
+      <span id="price-txt">—</span>
+    </div>
+    <button class="btn" id="refresh-btn" onclick="refreshPrices()">↻</button>
+    <button class="btn btn-gold" onclick="openModal('editBS')">Edit</button>
   </div>
 </div>
 
-<!-- NAV — 6 tabs, all fit -->
-<div class="nav">
-  <button class="nav-btn on" id="nav-dash" onclick="nav('dash')"><span class="ic">⬡</span>Overview</button>
-  <button class="nav-btn" id="nav-port" onclick="nav('port')"><span class="ic">◈</span>Portfolio</button>
-  <button class="nav-btn" id="nav-anlx" onclick="nav('anlx')"><span class="ic">◑</span>Analytics</button>
-  <button class="nav-btn" id="nav-pnl"  onclick="nav('pnl')"><span class="ic">◧</span>P&amp;L</button>
-  <button class="nav-btn" id="nav-debt" onclick="nav('debt')"><span class="ic">◫</span>Debt</button>
-  <button class="nav-btn" id="nav-set"  onclick="nav('set')"><span class="ic">◎</span>Settings</button>
-  <button class="nav-btn" id="nav-hist" onclick="nav('hist')"><span class="ic">◷</span>History</button>
-</div>
+<!-- NAV -->
+<nav class="nav">
+  <button class="nav-btn on" id="nav-dash" onclick="nav('dash')">
+    <span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+    Overview
+  </button>
+  <button class="nav-btn" id="nav-port" onclick="nav('port')">
+    <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M2 20h20M5 20V10l7-6 7 6v10"/><path d="M9 20v-5h6v5"/></svg></span>
+    Portfolio
+  </button>
+  <button class="nav-btn" id="nav-anlx" onclick="nav('anlx')">
+    <span class="nav-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
+    Analytics
+  </button>
+  <button class="nav-btn" id="nav-pnl" onclick="nav('pnl')">
+    <span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="2"/><line x1="8" y1="21" x2="8" y2="3"/><line x1="16" y1="21" x2="16" y2="3"/><line x1="2" y1="12" x2="22" y2="12"/></svg></span>
+    P&amp;L
+  </button>
+  <button class="nav-btn" id="nav-debt" onclick="nav('debt')">
+    <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>
+    Debt
+  </button>
+  <button class="nav-btn" id="nav-hist" onclick="nav('hist')">
+    <span class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+    History
+  </button>
+  <button class="nav-btn" id="nav-set" onclick="nav('set')">
+    <span class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg></span>
+    Settings
+  </button>
+</nav>
 
 <div class="content">
 
-<!-- ═══ OVERVIEW ═══ -->
+<!-- ════ OVERVIEW ════ -->
 <div class="screen on" id="screen-dash">
-  <div class="grid2">
-    <div class="card span2" style="--ac:var(--gold)" onclick="openModal('editBS')">
-      <div class="card-lbl">Net Worth</div>
-      <div class="card-val xl" id="d-nw">—</div>
-      <div class="card-sub" id="d-nw-sub">Assets — Liabilities</div>
+  <div class="hero" onclick="openModal('editBS')">
+    <div class="hero-lbl">Total Net Worth</div>
+    <div class="hero-val" id="d-nw">—</div>
+    <div class="hero-sub" id="d-nw-sub">—</div>
+  </div>
+
+  <div class="stat-grid" style="margin-top:10px">
+    <div class="stat-card" style="--ac:var(--blue)" onclick="nav('port')">
+      <div class="stat-lbl">Portfolio</div>
+      <div class="stat-val" id="d-pv">—</div>
+      <div class="stat-d" id="d-pv-d">—</div>
     </div>
-    <div class="card" style="--ac:var(--blue)" onclick="nav('port')">
-      <div class="card-lbl">Portfolio</div>
-      <div class="card-val" id="d-pv">—</div>
-      <div class="card-d" id="d-pv-d">—</div>
+    <div class="stat-card" style="--ac:var(--green)" onclick="nav('pnl')">
+      <div class="stat-lbl">Annual Dividends</div>
+      <div class="stat-val" id="d-div">—</div>
+      <div class="stat-sub" id="d-div-y">—</div>
     </div>
-    <div class="card" style="--ac:var(--green)" onclick="nav('pnl')">
-      <div class="card-lbl">Annual Divs</div>
-      <div class="card-val" id="d-div">—</div>
-      <div class="card-sub" id="d-div-y">— yield</div>
+    <div class="stat-card" style="--ac:var(--red)" onclick="nav('debt')">
+      <div class="stat-lbl">Mortgage</div>
+      <div class="stat-val" id="d-mort">—</div>
+      <div class="stat-sub neu">Dec 2052</div>
     </div>
-    <div class="card" style="--ac:var(--red)" onclick="nav('debt')">
-      <div class="card-lbl">Mortgage</div>
-      <div class="card-val" id="d-mort">—</div>
-      <div class="card-sub neu">Dec 2052</div>
-    </div>
-    <div class="card" style="--ac:var(--amber)">
-      <div class="card-lbl">Total Liabilities</div>
-      <div class="card-val" id="d-liab">—</div>
-      <div class="card-sub" id="d-liab-sub">—</div>
+    <div class="stat-card" style="--ac:var(--amber)">
+      <div class="stat-lbl">Liabilities</div>
+      <div class="stat-val" id="d-liab">—</div>
+      <div class="stat-sub" id="d-liab-sub">—</div>
     </div>
   </div>
-  <div class="shd"><h3>Alerts</h3><span class="act" onclick="nav('anlx')">Analytics →</span></div>
+
+  <div class="sec" style="padding-top:18px">
+    <span class="sec-title">Alerts</span>
+    <span class="sec-action" onclick="nav('anlx')">Analytics →</span>
+  </div>
   <div id="d-alerts"></div>
-  <div class="shd" style="margin-top:2px"><h3>Top 5 Holdings</h3><span class="act" onclick="nav('port')">All →</span></div>
+
+  <div class="sec"><span class="sec-title">Top Holdings</span><span class="sec-action" onclick="nav('port')">All →</span></div>
   <div id="d-top5"></div>
-  <div class="shd" style="margin-top:4px"><h3>Net Worth → 2030</h3></div>
+
+  <div class="sec" style="margin-top:4px"><span class="sec-title">Net Worth Projection</span></div>
   <div class="proj-bars" id="d-proj-bars"></div>
-  <div style="display:flex;gap:4px;padding:3px 14px 16px" id="d-proj-lbls"></div>
+  <div class="proj-lbl-row" id="d-proj-lbls"></div>
 </div>
 
-<!-- ═══ PORTFOLIO ═══ -->
+<!-- ════ PORTFOLIO ════ -->
 <div class="screen" id="screen-port">
-  <div style="padding:12px 14px;background:var(--card);border-bottom:1px solid var(--border)">
-    <div class="grid3" style="padding:0"><div id="port-summary" style="display:contents"></div></div>
+  <div style="padding:14px 18px;background:var(--surface);border-bottom:1px solid var(--border)">
+    <div class="kpi3" style="padding:0"><div id="port-summary" style="display:contents"></div></div>
   </div>
-  <div class="shd"><h3>Holdings — sorted by value</h3><span class="act" onclick="openModal('addHolding')">+ Add</span></div>
+  <div class="sec"><span class="sec-title">Holdings</span><span class="sec-action" onclick="openModal('addHolding')">+ Add</span></div>
+  <div class="sort-tabs" id="port-sort-tabs"></div>
   <div id="port-list"></div>
 </div>
 
-<!-- ═══ ANALYTICS ═══ -->
+<!-- ════ ANALYTICS ════ -->
 <div class="screen" id="screen-anlx">
-  <!-- Warnings generated dynamically -->
   <div id="anlx-warns"></div>
-
-  <div class="shd" style="padding-top:12px">
-    <h3>Performance  <span style="color:var(--hint);font-size:9px">(estimated — no live historical data)</span></h3>
+  <div class="sec" style="padding-top:14px">
+    <span class="sec-title">Performance</span>
+    <span style="font-size:9px;color:var(--text3)">model estimates</span>
   </div>
-  <div class="grid3" id="anlx-perf"></div>
+  <div class="kpi3" id="anlx-perf"></div>
+  <div class="sec">
+    <span class="sec-title">Risk</span>
+    <span style="font-size:9px;color:var(--text3)">model estimates</span>
+  </div>
+  <div class="kpi3" id="anlx-risk"></div>
+  <div class="sec"><span class="sec-title">Income Contributors</span></div>
+  <div id="anlx-income"></div>
 
-  <div class="shd"><h3>Risk Metrics  <span style="color:var(--hint);font-size:9px">(model estimates)</span></h3></div>
-  <div class="grid3" id="anlx-risk"></div>
-
-  <div class="shd">
-    <h3>Bucket Allocation vs Target</h3>
-    <span class="act" onclick="openModal('editTargets')">Targets →</span>
+  <div class="sec">
+    <span class="sec-title">Bucket Allocation vs Target</span>
+    <span class="sec-action" onclick="openModal('editTargets')">Targets →</span>
   </div>
   <div id="anlx-buckets"></div>
-
-  <div class="shd"><h3>Sector Exposure</h3></div>
+  <div class="sec"><span class="sec-title">Sector Exposure</span></div>
   <div id="anlx-sectors"></div>
-
-  <div class="shd"><h3>Geographic Exposure</h3></div>
+  <div class="sec"><span class="sec-title">Geographic Exposure</span></div>
   <div id="anlx-geo"></div>
-
-  <div class="shd"><h3>Value Screener</h3></div>
-  <div style="padding:0 14px 14px">
-    <button class="sbtn" onclick="openModal('screener')" style="margin-top:0">
-      Evaluate a New Stock →
-    </button>
+  <div class="sec"><span class="sec-title">Value Screener</span></div>
+  <div style="padding:0 18px 16px">
+    <button class="sbtn" onclick="openModal('screener')" style="margin-top:0">Evaluate a Stock →</button>
   </div>
 </div>
 
-<!-- ═══ P&L ═══ -->
+<!-- ════ P&L ════ -->
 <div class="screen" id="screen-pnl">
   <div class="yr-tabs" id="yr-tabs"></div>
   <div id="pnl-body"></div>
 </div>
 
-<!-- ═══ DEBT ═══ -->
+<!-- ════ DEBT ════ -->
 <div class="screen" id="screen-debt">
-  <div class="shd" style="padding-top:14px">
-    <h3>Mortgage — Zionskirchstraße</h3>
-    <span class="act" onclick="openModal('editMort')">Edit →</span>
+  <div class="sec" style="padding-top:16px">
+    <span class="sec-title">Mortgage — Zionskirchstraße</span>
+    <span class="sec-action" onclick="openModal('editMort')">Edit →</span>
   </div>
-  <div style="margin:0 14px;background:var(--card);border:1px solid var(--border);
-    border-radius:var(--rl);padding:14px" id="debt-summary"></div>
-  <div class="shd" style="margin-top:6px"><h3>Amortisation Schedule</h3></div>
+  <div style="margin:0 18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:16px" id="debt-summary"></div>
+  <div class="sec" style="margin-top:6px"><span class="sec-title">Amortisation Schedule</span></div>
   <div class="sched"><table id="sched-tbl"></table></div>
 </div>
 
-<!-- ═══ SETTINGS ═══ -->
-<div class="screen" id="screen-set">
-  <div class="shd" style="padding-top:14px"><h3>Balance Sheet Inputs</h3></div>
-  <div class="set-grp" id="set-bs"></div>
-  <div class="shd"><h3>Mortgage</h3></div>
-  <div class="set-grp" id="set-mort"></div>
-  <div class="shd"><h3>Allocation Targets</h3></div>
-  <div class="set-grp" id="set-targets"></div>
-  <div class="shd"><h3>Data</h3></div>
-  <div class="set-grp">
-    <div class="set-row" onclick="exportData()">
-      <span class="set-lbl">Export backup (JSON)</span><span class="set-arr">↓</span></div>
-    <div class="set-row" onclick="importData()">
-      <span class="set-lbl">Import from backup</span><span class="set-arr">↑</span></div>
-    <div class="set-row" onclick="if(confirm('Reset all data to defaults?'))resetData()">
-      <span class="set-lbl" style="color:#f87171">Reset to defaults</span><span class="set-arr">↺</span></div>
+<!-- ════ HISTORY ════ -->
+<div class="screen" id="screen-hist">
+  <div class="sec" style="padding-top:16px">
+    <span class="sec-title">All-Time Summary</span>
+    <span style="font-size:9px;color:var(--text3)">645 tx · Jan 2019–Apr 2026</span>
   </div>
-  <p style="padding:10px 14px 20px;font-size:11px;color:var(--hint);line-height:1.7">
-    Data saves automatically to this browser (localStorage).<br>
-    Use Export → Import to copy between browsers.
-  </p>
+  <div class="hist-stats" id="hist-alltime"></div>
+  <div class="sec"><span class="sec-title">Annual Capital Flow</span></div>
+  <div id="hist-annual-bars"></div>
+  <div class="sec" style="margin-top:4px"><span class="sec-title">Monthly Dividends — last 24 months</span></div>
+  <div id="hist-div-bars" style="padding:0 18px 8px"></div>
+  <div class="sec"><span class="sec-title">Top Dividend Payers</span></div>
+  <div id="hist-div-payers"></div>
+  <div class="sec" style="margin-top:4px"><span class="sec-title">Recent Transactions</span></div>
+  <div id="hist-tx"></div>
 </div>
 
-
-<!-- ═══ HISTORY ═══ -->
-<div class="screen" id="screen-hist">
-  <div class="shd" style="padding-top:14px"><h3>All-Time Summary</h3><span class="act" style="font-size:10px;color:var(--muted)">630 transactions · Jan 2019 – Mar 2026</span></div>
-  <div class="stat-2" id="hist-alltime"></div>
-
-  <div class="shd"><h3>Annual Capital Flow &amp; Dividends</h3></div>
-  <div class="yr-bar-wrap" id="hist-annual-bars"></div>
-
-  <div class="shd" style="margin-top:2px"><h3>Dividend Income — Monthly</h3></div>
-  <div style="padding:0 14px 4px;font-size:10px;color:var(--muted)">Last 24 months — tap bar for amount</div>
-  <div id="hist-div-bars" style="padding:4px 14px 8px"></div>
-
-  <div class="shd"><h3>Top Dividend Payers (all-time)</h3></div>
-  <div id="hist-div-payers"></div>
-
-  <div class="shd" style="margin-top:2px"><h3>Recent Transactions</h3></div>
-  <div id="hist-tx"></div>
+<!-- ════ SETTINGS ════ -->
+<div class="screen" id="screen-set">
+  <div class="sec" style="padding-top:16px"><span class="sec-title">Balance Sheet</span></div>
+  <div class="set-grp" id="set-bs"></div>
+  <div class="sec"><span class="sec-title">Mortgage</span></div>
+  <div class="set-grp" id="set-mort"></div>
+  <div class="sec"><span class="sec-title">Allocation Targets</span></div>
+  <div class="set-grp" id="set-targets"></div>
+  <div class="sec"><span class="sec-title">Data</span></div>
+  <div class="set-grp">
+    <div class="set-row" onclick="exportData()"><span class="set-lbl">Export backup (JSON)</span><span class="set-arr">↓</span></div>
+    <div class="set-row" onclick="importData()"><span class="set-lbl">Import from backup</span><span class="set-arr">↑</span></div>
+    <div class="set-row" onclick="if(confirm('Reset all data?'))resetData()"><span class="set-lbl" style="color:var(--red)">Reset to defaults</span><span class="set-arr">↺</span></div>
+  </div>
+  <p style="padding:10px 18px 24px;font-size:11px;color:var(--text3);line-height:1.7">
+    Data saves automatically in this browser.<br>Use Export → Import to copy between browsers.
+  </p>
 </div>
 
 </div><!-- /content -->
@@ -479,16 +827,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue'
 <!-- MODAL -->
 <div class="ovl" id="ovl" onclick="bgClose(event)">
   <div class="sheet">
-    <div class="sh-hnd"></div>
-    <div class="sh-hd">
+    <div class="sh-handle"></div>
+    <div class="sh-head">
       <h3 id="sh-title">Edit</h3>
-      <button class="sh-cl" onclick="closeModal()">✕</button>
+      <button class="sh-close" onclick="closeModal()">✕</button>
     </div>
-    <div class="sh-bd" id="sh-body"></div>
+    <div class="sh-body" id="sh-body"></div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
+
 
 <script>
 var _pw=localStorage.getItem("fos_pw");
@@ -778,10 +1127,10 @@ async function refreshPrices() {
     S.bs.portfolio = Math.round(portVal());
     save();
     const t = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-    setH('price-status',`<span class="live-dot"></span> ${t} — ${ok}/${tickers.length}`);
+    document.getElementById('price-txt').textContent=t+' — '+ok+'/'+tickers.length;document.querySelector('#price-status .live-dot').style.background='var(--green)';
     renderAll();
   } catch(e) {
-    setH('price-status','<span class="live-dot" style="background:var(--red)"></span> Offline');
+    document.getElementById('price-txt').textContent='Offline';document.querySelector('#price-status .live-dot').style.background='var(--red)';
   }
   btn.textContent = '⟳ Prices'; btn.disabled = false;
 }
@@ -820,8 +1169,8 @@ function renderDash() {
   // Alerts (top 3)
   const ws = warnings().slice(0,4);
   setH('d-alerts', ws.map(w=>`
-    <div class="warn warn-${w.s}">
-      <span class="warn-icon">${w.s==='r'?'⚠':w.s==='a'?'◈':'✓'}</span>
+    <div class="alert alert-${w.s}">
+      <span class="alert-icon">${w.s==='r'?'⚠':w.s==='a'?'Portfolio':'✓'}</span>
       <span>${w.msg}</span>
     </div>`).join(''));
 
@@ -830,7 +1179,7 @@ function renderDash() {
   setH('d-top5', top5.map(h=>{
     const g=(h.v-h.cost)/h.cost*100;
     return `<div class="row" onclick="nav('port')">
-      <div class="row-ic">${h.sec.slice(0,3)}</div>
+      <div class="row-badge">${h.sec.slice(0,3)}</div>
       <div class="row-b"><div class="row-t">${h.name}</div>
         <div class="row-s">${F.p0(h.v/pv*100)} weight</div></div>
       <div class="row-r"><div class="row-v">${F.k(h.v)}</div>
@@ -843,7 +1192,7 @@ function renderDash() {
   const maxNW = Math.max(...proj.map(d=>d.nw));
   setH('d-proj-bars', proj.map((d,i)=>`
     <div class="proj-col">
-      <div class="proj-bar ${i?'f':'c'}" style="height:${Math.round(d.nw/maxNW*100)}%"></div>
+      <div class="proj-bar ${i?'fut':'cur'}" style="height:${Math.round(d.nw/maxNW*100)}%"></div>
     </div>`).join(''));
   setH('d-proj-lbls', proj.map(d=>`
     <div style="flex:1;text-align:center;font-size:9px;color:var(--muted);font-variant-numeric:tabular-nums">
@@ -857,38 +1206,58 @@ function renderDash() {
 function renderPort() {
   const pv=portVal(), cost=S.holdings.reduce((s,h)=>s+h.cost,0), divs=totalDivs();
   const gain=pv-cost;
-  setH('port-summary', `
-    <div class="mini-card">
-      <div class="ml">Value</div>
-      <div class="mv">${F.k(pv)}</div>
-    </div>
-    <div class="mini-card">
-      <div class="ml">Gain</div>
-      <div class="mv ${cc(gain)}">${F.p(gain/cost*100)}</div>
-    </div>
-    <div class="mini-card">
-      <div class="ml">Divs/yr</div>
-      <div class="mv">${F.k(divs)}</div>
-    </div>`);
 
+  // Summary bar
+  setH('port-summary', `
+    <div class="kpi"><div class="kpi-l">Market Value</div><div class="kpi-v">${F.k(pv)}</div></div>
+    <div class="kpi"><div class="kpi-l">Unrealised P/L</div>
+      <div class="kpi-v ${cc(gain)}">${gain>=0?'+':''}${F.k(gain)}</div>
+      <div class="kpi-s">${F.p(gain/cost*100)}</div></div>
+    <div class="kpi"><div class="kpi-l">Annual Income</div><div class="kpi-v">${F.k(divs)}</div>
+      <div class="kpi-s">${F.p0(divs/pv*100)} yield</div></div>`);
+
+  // Sort tabs
+  if (!window._portSort) window._portSort = 'value';
+  const sorts = [['value','Value'],['gain%','Gain %'],['weight','Weight'],['income','Income']];
+  setH('port-sort-tabs', sorts.map(([k,l])=>
+    `<button class="sort-tab ${window._portSort===k?'on':''}" onclick="_portSort='${k}';renderPort()">${l}</button>`
+  ).join(''));
+
+  // Sort holdings
   const IC = {Tech:'TEC',Energy:'NRG',Passive:'IDX',Fin:'FIN',Health:'MED',Ind:'IND',
     Staples:'STP',ETF:'DIV',Gold:'GLD',Auto:'AUT',RE:'RE',Disc:'DIS',Media:'MED',Crypto:'₿',Other:'OTH'};
-  const sorted = [...S.holdings].map((h,i)=>({...h,i,v:hv(h)})).sort((a,b)=>b.v-a.v);
-  setH('port-list', sorted.map(h=>{
-    const g=(h.v-h.cost)/h.cost*100;
+  const SEC_COL = {Tech:'#60a5fa',Energy:'#f59e0b',Passive:'#818cf8',Fin:'#34d399',Health:'#f472b6',
+    Ind:'#fb923c',Staples:'#a3e635',ETF:'#c084fc',Gold:'#fbbf24',Auto:'#94a3b8',RE:'#2dd4bf',
+    Disc:'#f87171',Media:'#9ca3af',Crypto:'#f59e0b',Other:'#6b7280'};
+
+  let rows = [...S.holdings].map((h,i)=>({...h,i,v:hv(h),g:(hv(h)-h.cost)/h.cost*100,
+    wt:hv(h)/pv*100, yoc:h.cost>0?h.div/h.cost*100:0}));
+  if (window._portSort==='value')  rows.sort((a,b)=>b.v-a.v);
+  if (window._portSort==='gain%')  rows.sort((a,b)=>b.g-a.g);
+  if (window._portSort==='weight') rows.sort((a,b)=>b.wt-a.wt);
+  if (window._portSort==='income') rows.sort((a,b)=>b.div-a.div);
+
+  setH('port-list', rows.map(h=>{
     const fl = flags(h, pv);
-    return `<div class="row" onclick="openModal('editHolding',${h.i})">
-      <div class="row-ic">${IC[h.sec]||'OTH'}</div>
-      <div class="row-b">
-        <div class="row-t">${h.name}</div>
-        <div class="row-s">${h.t} · ${F.p0(h.v/pv*100)} · €${h.div}/yr</div>
-        ${fl.length?`<div class="flags">${fl.map(f=>`<span class="flag ${f.c}">${f.l}</span>`).join('')}</div>`:''}
+    const secCol = SEC_COL[h.sec]||'#6b7280';
+    const glEur = h.v - h.cost;
+    return \`<div class="port-row" onclick="openModal('editHolding',\${h.i})">
+      <div class="port-row-left">
+        <div class="port-badge" style="border-color:\${secCol}20;background:\${secCol}12">
+          <span style="color:\${secCol};font-size:9px;font-weight:700">\${IC[h.sec]||'OTH'}</span>
+        </div>
+        <div class="port-row-body">
+          <div class="port-name">\${h.name}</div>
+          <div class="port-meta">\${h.t} &nbsp;·&nbsp; \${h.sh} sh &nbsp;·&nbsp; <span style="color:\${secCol}">\${h.sec}</span></div>
+          \${fl.length?\`<div class="flags">\${fl.map(f=>\`<span class="flag \${f.c}">\${f.l}</span>\`).join('')}</div>\`:''}
+        </div>
       </div>
-      <div class="row-r">
-        <div class="row-v">${F.k(h.v)}</div>
-        <div class="row-p ${cc(g)}">${F.p(g)}</div>
+      <div class="port-row-right">
+        <div class="port-value">\${F.k(h.v)}</div>
+        <div class="port-gl \${cc(glEur)}">\${glEur>=0?'+':''}\${F.k(glEur)} (\${F.p(h.g)})</div>
+        <div class="port-weight">\${F.p0(h.wt)} &nbsp;·&nbsp; \${h.div>0?'€'+h.div+'/yr':'—'}</div>
       </div>
-    </div>`;
+    </div>\`;
   }).join(''));
 }
 
@@ -898,125 +1267,111 @@ function renderPort() {
 function renderAnlx() {
   const m = metrics(), pv = portVal();
 
-  // Warnings (all)
+  // Warnings
   const ws = warnings();
   setH('anlx-warns', ws.map(w=>`
-    <div class="warn warn-${w.s}">
-      <span class="warn-icon">${w.s==='r'?'⚠':w.s==='a'?'◈':'✓'}</span>
-      <span>${w.msg}</span>
+    <div class="alert alert-\${w.s}">
+      <span class="alert-icon">\${w.s==='r'?'▲':w.s==='a'?'●':'✓'}</span>
+      <span>\${w.msg}</span>
     </div>`).join(''));
 
-  // Performance (with honest labels)
-  setH('anlx-perf', `
-    <div class="mini-card">
-      <div class="ml">IRR (CAGR)</div>
-      <div class="mv pos">${m.irr.toFixed(2)}%</div>
-      <div class="ms">since Jan 2019</div>
-    </div>
-    <div class="mini-card">
-      <div class="ml">Total Return</div>
-      <div class="mv pos">${F.p((m.pv/m.cost-1)*100)}</div>
-      <div class="ms">vs cost basis</div>
-    </div>
-    <div class="mini-card">
-      <div class="ml">Alpha</div>
-      <div class="mv ${cc(m.alpha)}">${m.alpha>=0?'+':''}${m.alpha.toFixed(1)}%</div>
-      <div class="ms">vs MSCI World</div>
-    </div>
-    <div class="mini-card">
-      <div class="ml">Sharpe ~</div>
-      <div class="mv ${m.sharpe>=1?'pos':m.sharpe>=0.5?'gold':''}">${m.sharpe.toFixed(2)}</div>
-      <div class="ms">&gt;1 = excellent</div>
-    </div>
-    <div class="mini-card">
-      <div class="ml">Info Ratio ~</div>
-      <div class="mv ${m.ir>=0.5?'pos':''}">${m.ir.toFixed(2)}</div>
-      <div class="ms">&gt;0.5 = good α</div>
-    </div>
-    <div class="mini-card">
-      <div class="ml">Treynor ~</div>
-      <div class="mv">${m.treynor.toFixed(1)}%</div>
-      <div class="ms">return per β</div>
-    </div>`);
+  // ── SCORECARD — key metrics with context ─────────────────────────────────
+  function mkpi(lbl, val, sub, cls, interpretation) {
+    return \`<div class="anlx-kpi">
+      <div class="anlx-kpi-lbl">\${lbl}</div>
+      <div class="anlx-kpi-val \${cls}">\${val}</div>
+      <div class="anlx-kpi-sub">\${sub}</div>
+      <div class="anlx-kpi-bar"><div class="anlx-kpi-bar-fill \${cls}" style="width:\${Math.min(interpretation,100)}%"></div></div>
+    </div>\`;
+  }
 
-  // Risk
-  const var95pct = pv>0 ? m.var95/pv*100 : 0;
-  setH('anlx-risk', `
-    <div class="mini-card">
-      <div class="ml">Port. Vol ~</div>
-      <div class="mv ${m.portVol>20?'neg':''}">${m.portVol.toFixed(1)}%</div>
-      <div class="ms">est. annual σ</div>
-    </div>
-    <div class="mini-card">
-      <div class="ml">Beta ~</div>
-      <div class="mv">${m.beta.toFixed(2)}</div>
-      <div class="ms">vs MSCI World</div>
-    </div>
-    <div class="mini-card">
-      <div class="ml">VaR 95% (1M) ~</div>
-      <div class="mv neg">−${var95pct.toFixed(1)}%</div>
-      <div class="ms">${F.k(m.var95)}</div>
-    </div>
-    <div class="mini-card">
-      <div class="ml">HHI (Conc.)</div>
-      <div class="mv ${m.hhi>1500?'neg':m.hhi>1000?'gold':'pos'}">${Math.round(m.hhi)}</div>
-      <div class="ms">&lt;1000 = diverse</div>
-    </div>
-    <div class="mini-card">
-      <div class="ml">Div Yield</div>
-      <div class="mv ${m.divYield>=S.targets.minDivYield?'pos':'neg'}">${m.divYield.toFixed(1)}%</div>
-      <div class="ms">target ${S.targets.minDivYield}%+</div>
-    </div>
-    <div class="mini-card">
-      <div class="ml">Holdings</div>
-      <div class="mv">${S.holdings.length}</div>
-      <div class="ms">positions</div>
-    </div>`);
+  const irrScore = Math.min(m.irr/15*100, 100);
+  const sharpeScore = Math.min(m.sharpe/1.5*100, 100);
+  const irScore = Math.min(Math.max(m.ir/1*100,0), 100);
+  const hhiScore = Math.max(100 - m.hhi/20, 0);
+  const divScore = Math.min(m.divYield/4*100, 100);
+  const volScore = Math.max(100 - (m.portVol-10)*3, 0);
 
-  // Bucket drift bars
+  setH('anlx-perf', \`
+    \${mkpi('IRR / CAGR', m.irr.toFixed(2)+'%', 'since Jan 2019 · benchmark 11.2%', m.irr>=11.2?'pos':'neg', irrScore)}
+    \${mkpi('Total Return', F.p((m.pv/m.cost-1)*100), 'unrealised gain on cost', 'pos', Math.min((m.pv/m.cost-1)*100/200*100,100))}
+    \${mkpi('Alpha (est.)', (m.alpha>=0?'+':'')+m.alpha.toFixed(1)+'%', 'vs MSCI World annualised', cc(m.alpha), irScore)}
+    \${mkpi('Sharpe (est.)', m.sharpe.toFixed(2), m.sharpe>=1?'excellent · >1.0':'good >0.5 · fair >0', m.sharpe>=1?'pos':m.sharpe>=0.5?'gold':'neg', sharpeScore)}
+    \${mkpi('Info Ratio (est.)', m.ir.toFixed(2), '>0.5 = consistent alpha generation', m.ir>=0.5?'pos':m.ir>0?'gold':'neg', irScore)}
+    \${mkpi('Treynor (est.)', m.treynor.toFixed(1)+'%', 'excess return per unit of market risk', cc(m.treynor), Math.min(Math.max(m.treynor/10*100,0),100))}\`);
+
+  const var95pct = pv>0?m.var95/pv*100:0;
+  setH('anlx-risk', \`
+    \${mkpi('Portfolio Vol (est.)', m.portVol.toFixed(1)+'%', m.portVol<15?'low · well diversified':m.portVol<20?'moderate':'elevated', m.portVol>20?'neg':'pos', volScore)}
+    \${mkpi('Beta (est.)', m.beta.toFixed(2), m.beta<0.9?'defensive':'market-correlated · vs MSCI World', cc(1-m.beta), (1-Math.abs(m.beta-0.7))*100)}
+    \${mkpi('VaR 95% 1M (est.)', '-'+var95pct.toFixed(1)+'%', F.k(m.var95)+' worst-case monthly loss', 'neg', Math.max(100-var95pct*5,0))}
+    \${mkpi('HHI Concentration', Math.round(m.hhi).toLocaleString(), m.hhi<1000?'diversified · <1000':m.hhi<1500?'moderate · <1500':'concentrated · >1500', m.hhi>1500?'neg':m.hhi>1000?'gold':'pos', hhiScore)}
+    \${mkpi('Dividend Yield', m.divYield.toFixed(1)+'%', 'target '+S.targets.minDivYield+'%+ · annual income '+F.k(totalDivs()), m.divYield>=S.targets.minDivYield?'pos':'neg', divScore)}
+    \${mkpi('Positions', S.holdings.length, 'individual holdings across '+Object.keys(sectors().reduce((m,s)=>({...m,[s.s]:1}),{})).length+' sectors', 'neu', 70)}\`);
+
+  // ── INCOME BREAKDOWN ─────────────────────────────────────────────────────
+  const incomeRows = [...S.holdings]
+    .filter(h=>h.div>0)
+    .map(h=>({name:h.name, div:h.div, yoc:h.cost>0?h.div/h.cost*100:0, wt:hv(h)/pv*100}))
+    .sort((a,b)=>b.div-a.div);
+  const totalIncome = incomeRows.reduce((s,r)=>s+r.div,0);
+  const maxDiv = incomeRows[0]?.div||1;
+
+  setH('anlx-income', incomeRows.slice(0,10).map(r=>{
+    const w = Math.round(r.div/maxDiv*100);
+    const pctOfTotal = totalIncome>0?r.div/totalIncome*100:0;
+    return \`<div class="income-row">
+      <div class="income-name">\${r.name.slice(0,22)}</div>
+      <div class="income-bar-wrap">
+        <div class="income-bar" style="width:\${w}%"></div>
+      </div>
+      <div class="income-nums">€\${r.div} · \${r.yoc.toFixed(1)}% YOC · \${pctOfTotal.toFixed(0)}%</div>
+    </div>\`;
+  }).join('') + \`<div style="padding:8px 18px;font-size:10px;color:var(--text3)">
+    \${S.holdings.filter(h=>h.div===0&&!['Passive','ETF','Gold','Crypto'].includes(h.sec)).length} positions pay no dividend
+  </div>\`);
+
+  // ── BUCKET DRIFT ─────────────────────────────────────────────────────────
   const bkts = buckets();
   setH('anlx-buckets', bkts.map(b=>{
     const dc = b.status==='ok'?'var(--green)':b.status==='warn'?'var(--amber)':'var(--red)';
-    const tgtPx = Math.min(b.target, 100);
-    return `<div class="drift-row">
-      <div class="drift-lbl">${b.name}</div>
+    return \`<div class="drift-row">
+      <div class="drift-lbl">\${b.name}</div>
       <div class="drift-track">
-        <div class="drift-tgt" style="left:${tgtPx}%"></div>
-        <div class="drift-fill ${b.status}" style="width:${Math.min(b.act,100)}%"></div>
+        <div class="drift-tgt" style="left:\${Math.min(b.target,100)}%"></div>
+        <div class="drift-fill \${b.status}" style="width:\${Math.min(b.act,100)}%"></div>
       </div>
-      <div class="drift-nums">${b.act.toFixed(1)}% / ${b.target}%</div>
-      <div class="drift-delta" style="color:${dc}">${b.drift>0?'+':''}${b.drift.toFixed(1)}%</div>
-    </div>`;
+      <div class="drift-nums">\${b.act.toFixed(1)}% / \${b.target}%</div>
+      <div class="drift-delta" style="color:\${dc}">\${b.drift>0?'+':''}\${b.drift.toFixed(1)}%</div>
+    </div>\`;
   }).join(''));
 
-  // Sectors
-  const secs = sectors();
-  const maxSec = secs[0]?.p || 1;
+  // ── SECTOR ───────────────────────────────────────────────────────────────
+  const secs = sectors(), maxSec = secs[0]?.p||1;
+  const SEC_COL2 = {Tech:'#60a5fa',Energy:'#f59e0b',Passive:'#818cf8',Fin:'#34d399',Health:'#f472b6',
+    Ind:'#fb923c',Staples:'#a3e635',ETF:'#c084fc',Gold:'#fbbf24',Auto:'#94a3b8',RE:'#2dd4bf',
+    Disc:'#f87171',Media:'#9ca3af',Crypto:'#f59e0b',Other:'#6b7280'};
   setH('anlx-sectors', secs.map(s=>{
-    const high = s.p > 20;
-    return `<div class="hbar-row">
-      <div class="hbar-lbl">${s.s}</div>
-      <div class="hbar-track">
-        <div class="hbar-fill" style="width:${s.p/maxSec*100}%;background:${high?'var(--amber)':'var(--blue)'}"></div>
-      </div>
-      <div class="hbar-val">${s.p.toFixed(1)}%</div>
-      ${high?`<span class="hbar-badge" style="background:rgba(245,158,11,.12);color:var(--amber)">HIGH</span>`:''}
-    </div>`;
+    const col = SEC_COL2[s.s]||'#6b7280';
+    const high = s.p>20;
+    return \`<div class="hbar">
+      <div class="hbar-lbl" style="color:\${col}">\${s.s}</div>
+      <div class="hbar-track"><div class="hbar-fill" style="width:\${s.p/maxSec*100}%;background:\${col};opacity:.7"></div></div>
+      <div class="hbar-pct">\${s.p.toFixed(1)}%</div>
+      \${high?\`<span class="hbar-badge" style="background:rgba(251,191,36,.12);color:var(--amber)">HIGH</span>\`:''}
+    </div>\`;
   }).join(''));
 
-  // Geo
-  const gs = geos();
-  const maxGeo = gs[0]?.p || 1;
+  // ── GEO ──────────────────────────────────────────────────────────────────
+  const gs = geos(), maxGeo = gs[0]?.p||1;
   setH('anlx-geo', gs.map(g=>{
-    const high = g.p > 40;
-    return `<div class="hbar-row">
-      <div class="hbar-lbl">${g.g}</div>
-      <div class="hbar-track">
-        <div class="hbar-fill" style="width:${g.p/maxGeo*100}%;background:${high?'var(--amber)':'var(--purple)'}"></div>
-      </div>
-      <div class="hbar-val">${g.p.toFixed(1)}%</div>
-      ${high?`<span class="hbar-badge" style="background:rgba(245,158,11,.12);color:var(--amber)">CONC.</span>`:''}
-    </div>`;
+    const high = g.p>40;
+    return \`<div class="hbar">
+      <div class="hbar-lbl">\${g.g}</div>
+      <div class="hbar-track"><div class="hbar-fill" style="width:\${g.p/maxGeo*100}%;background:var(--blue);opacity:.7"></div></div>
+      <div class="hbar-pct">\${g.p.toFixed(1)}%</div>
+      \${high?\`<span class="hbar-badge" style="background:rgba(251,191,36,.12);color:var(--amber)">CONC.</span>\`:''}
+    </div>\`;
   }).join(''));
 }
 
@@ -1033,13 +1388,13 @@ function renderPnl() {
   const exp = (d.pkv||0)+(d.mortgage||0)+(d.weg||0)+(d.tax||0)+(d.living||0)+(d.betrieb||0)+(d.invest||0);
   const sur = inc - exp;
   setH('pnl-body',`
-    <div class="pl-sec">Income
+    <div class="pl-head">Income
       <span class="act" onclick="openModal('editPnl',${plYear})">edit →</span></div>
     ${[['Freelance (Umsatz)',d.freelance],['Rental income',d.rental],['Teresa income',d.teresa],
        ['Dividends',d.dividends],['Other',d.other]].map(([l,v])=>
       `<div class="pl-row"><span class="lb">${l}</span><span>${F.e(v||0)}</span></div>`).join('')}
     <div class="pl-row tot"><span class="lb dk">Total Income</span><span>${F.e(inc)}</span></div>
-    <div class="pl-sec" style="margin-top:4px">Expenses</div>
+    <div class="pl-head" style="margin-top:4px">Expenses</div>
     ${[['Private KV',d.pkv],['Mortgage',d.mortgage],['WEG Hausgeld',d.weg],['Einkommensteuer',d.tax],
        ['Living expenses',d.living],['Betriebsausgaben',d.betrieb],['New investment',d.invest]].map(([l,v])=>
       `<div class="pl-row"><span class="lb">${l}</span><span class="neg">−${F.e(v||0)}</span></div>`).join('')}
@@ -1066,17 +1421,17 @@ function renderDebt() {
       font-variant-numeric:tabular-nums;margin-bottom:2px">
       <span>Paid: ${F.e(m.original-bal)}</span><span>Remaining: ${F.e(bal)}</span>
     </div>
-    <div class="debt-bar">
-      <div class="debt-pd" style="width:${pct.toFixed(1)}%">${pct.toFixed(0)}%</div>
-      <div class="debt-lf">${(100-pct).toFixed(0)}%</div>
+    <div class="debt-progress">
+      <div class="debt-progress-fill" style="width:${pct.toFixed(1)}%">${pct.toFixed(0)}%</div>
+      <div class="">${(100-pct).toFixed(0)}%</div>
     </div>
     <div class="debt-stats">
-      <div class="dst"><div class="dl">Monthly payment</div><div class="dv">${F.e(m.payment)}</div></div>
-      <div class="dst"><div class="dl">Interest rate</div><div class="dv">${(m.rate*100).toFixed(2)}%</div></div>
-      <div class="dst"><div class="dl">Interest this month</div><div class="dv">${F.e(bal*r)}</div></div>
-      <div class="dst"><div class="dl">Principal this month</div><div class="dv">${F.e(m.payment-bal*r)}</div></div>
-      <div class="dst"><div class="dl">Total interest paid</div><div class="dv">${F.e(tInt)}</div></div>
-      <div class="dst"><div class="dl">Estimated payoff</div><div class="dv">Dec 2052</div></div>
+      <div class="d-stat"><div class="d-stat-l">Monthly payment</div><div class="d-stat-v">${F.e(m.payment)}</div></div>
+      <div class="d-stat"><div class="d-stat-l">Interest rate</div><div class="d-stat-v">${(m.rate*100).toFixed(2)}%</div></div>
+      <div class="d-stat"><div class="d-stat-l">Interest this month</div><div class="d-stat-v">${F.e(bal*r)}</div></div>
+      <div class="d-stat"><div class="d-stat-l">Principal this month</div><div class="d-stat-v">${F.e(m.payment-bal*r)}</div></div>
+      <div class="d-stat"><div class="d-stat-l">Total interest paid</div><div class="d-stat-v">${F.e(tInt)}</div></div>
+      <div class="d-stat"><div class="d-stat-l">Estimated payoff</div><div class="d-stat-v">Dec 2052</div></div>
     </div>`);
 
   const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -1229,18 +1584,18 @@ function runScreener(params) {
 
   const html = `
     <div style="text-align:center;padding:16px 0 12px">
-      <div class="sc-score" style="border-color:${vc}">
-        <div class="sv" style="color:${vc}">${Math.round(score)}</div>
-        <div class="sl">/ 100</div>
+      <div class="score-ring" style="border-color:${vc}">
+        <div class="hv" style="color:${vc}">${Math.round(score)}</div>
+        <div class="hl">/ 100</div>
       </div>
       <div style="font-size:14px;font-weight:700;color:${vc};margin-bottom:4px">${verdict}</div>
       <div style="font-size:11px;color:var(--muted)">${name} · ${tick}</div>
     </div>
     <div style="border-top:1px solid var(--border);padding-top:10px">
       ${results.map(c=>`
-        <div class="chk">
-          <div class="chk-dot ${c.res}">${c.res==='p'?'✓':c.res==='w'?'~':'✗'}</div>
-          <div><div class="chk-t">${c.l}</div><div class="chk-d">${c.desc}</div></div>
+        <div class="chk-row">
+          <div class="chk-ic ${c.res}">${c.res==='p'?'✓':c.res==='w'?'~':'✗'}</div>
+          <div><div class="chk-title">${c.l}</div><div class="chk-desc">${c.desc}</div></div>
         </div>`).join('')}
     </div>
     <div class="size-box">
@@ -1252,8 +1607,8 @@ function runScreener(params) {
       <div class="size-row"><span style="color:var(--muted)">Capped at ${S.targets.maxPos}% limit</span><span>${capWt.toFixed(1)}%</span></div>
       <div class="size-row"><span>Recommended position</span><span style="color:var(--gold)">${F.k(recEur)}</span></div>
     </div>
-    ${secWarn?`<div class="warn warn-a" style="margin:0 0 10px">
-      <span class="warn-icon">◈</span><span>${secWarn}</span></div>`:''}
+    ${secWarn?`<div class="alert alert-a" style="margin:0 0 10px">
+      <span class="alert-icon">◈</span><span>${secWarn}</span></div>`:''}
     ${score>=60
       ?`<button class="sbtn" onclick="addFromScreener('${name}','${tick}','${ccy}','${sec}',${Math.round(recEur)})">Add ${name} to Portfolio</button>`
       :`<button class="dbtn" onclick="addFromScreener('${name}','${tick}','${ccy}','${sec}',${Math.round(recEur)})">Add anyway (below threshold)</button>`}
@@ -1598,131 +1953,62 @@ function toast(msg) {
 // ════════════════════════════════════════════════════════════════════
 // HISTORICAL DATA — Parqet CSV (630 transactions, Jan 2019 – Mar 2026)
 // ════════════════════════════════════════════════════════════════════
-const HIST = {"annual":{"2019":{"invested":9373.03,"withdrawn":190.2,"dividends":54.91,"fees":378.61,"tax":5.8,"realizedGains":34.2,"buys":28,"sells":1},"2020":{"invested":14023.75,"withdrawn":3913.41,"dividends":172.11,"fees":382.73,"tax":26.68,"realizedGains":-652.06,"buys":16,"sells":8},"2021":{"invested":37145.15,"withdrawn":17912.52,"dividends":657.85,"fees":529.48,"tax":1189.99,"realizedGains":2786.51,"buys":28,"sells":12},"2022":{"invested":7059.74,"withdrawn":2596.24,"dividends":1049.95,"fees":145.77,"tax":470.86,"realizedGains":-3208.1,"buys":10,"sells":3},"2023":{"invested":7756.4,"withdrawn":5950.09,"dividends":1546.37,"fees":91.14,"tax":855.96,"realizedGains":4549.24,"buys":5,"sells":3},"2024":{"invested":28175.92,"withdrawn":18713.4,"dividends":1593.06,"fees":0.0,"tax":0.0,"realizedGains":-2196.49,"buys":37,"sells":10},"2025":{"invested":43710.3,"withdrawn":12432.63,"dividends":2213.8,"fees":18.3,"tax":85.74,"realizedGains":-730.11,"buys":52,"sells":8},"2026":{"invested":44054.2,"withdrawn":9259.24,"dividends":329.5,"fees":0.0,"tax":0.0,"realizedGains":1464.47,"buys":19,"sells":6}},"monthly_dividends":{"2019-01":0.35,"2019-04":0.54,"2019-05":4.85,"2019-06":1.8,"2019-07":5.3,"2019-08":14.47,"2019-09":10.2,"2019-10":3.43,"2019-12":13.97,"2020-01":4.42,"2020-03":24.78,"2020-04":3.01,"2020-05":17.07,"2020-06":14.47,"2020-07":4.65,"2020-09":18.87,"2020-10":6.32,"2020-11":48.11,"2020-12":30.41,"2021-01":3.19,"2021-02":3.37,"2021-03":45.86,"2021-04":44.43,"2021-05":302.39,"2021-06":45.94,"2021-07":24.45,"2021-08":24.25,"2021-09":71.93,"2021-10":15.18,"2021-11":3.83,"2021-12":73.03,"2022-01":38.95,"2022-02":42.65,"2022-03":82.7,"2022-04":45.98,"2022-05":395.81,"2022-06":111.48,"2022-07":56.09,"2022-08":51.86,"2022-09":81.78,"2022-10":54.32,"2022-11":19.99,"2022-12":68.34,"2023-01":61.58,"2023-02":59.66,"2023-03":112.27,"2023-04":20.86,"2023-05":753.48,"2023-06":215.22,"2023-07":36.89,"2023-08":29.08,"2023-09":94.38,"2023-10":43.01,"2023-11":23.12,"2023-12":96.82,"2024-01":51.29,"2024-02":38.07,"2024-03":115.36,"2024-04":56.8,"2024-05":744.09,"2024-06":125.23,"2024-07":74.92,"2024-08":42.57,"2024-09":105.04,"2024-10":69.56,"2024-11":65.91,"2024-12":104.22,"2025-01":79.99,"2025-02":114.16,"2025-03":121.87,"2025-04":39.66,"2025-05":785.26,"2025-06":327.99,"2025-07":224.32,"2025-08":50.31,"2025-09":176.85,"2025-10":92.93,"2025-11":57.5,"2025-12":142.96,"2026-01":113.56,"2026-02":120.37,"2026-03":95.57},"all_time":{"invested":191298.49,"withdrawn":70967.73,"netInvested":120330.76,"dividends":7617.55,"fees":1546.03,"tax":2635.03,"realizedGains":2047.66},"div_by_holding":{"Mercedes-Benz":953.8,"Altria Group, Inc.":514.54,"Bristol Myers Squibb":511.23,"BMW":492.68,"Shell":473.38,"Xtrackers MSCI World UCITS ETF - 1D USD DIS":428.92,"Allianz":365.4,"BlackRock":318.95,"Hamborner REIT":318.87,"iShares STOXX Global Select Dividend 100 UCITS ETF (DE) - EUR DIS":311.48,"Mutares":253.5,"Lockheed Martin":219.51,"Carrefour":195.69,"Linde":182.78,"Medtronic":168.28,"Microsoft":167.88,"Vonovia":163.35,"Royal Dutch Shell A (alt)":140.96,"3M":118.45,"Siemens":116.05,"Sanofi":110.19,"SAP":95.25,"Xtrackers Stoxx Global Select Dividend 100 Swap UCITS ETF - 1D EUR DIS":94.3,"Chevron Corp.":79.84,"PepsiCo":74.59,"Coca-Cola":73.77,"Apple":68.94,"Daimler Truck":63.08,"adidas":58.0,"AbbVie":55.89,"Infineon Technologies":46.34,"McDonald's":41.23,"Eckert & Ziegler":40.0,"Procter & Gamble":38.31,"Caterpillar":33.57,"Nextera Energy":33.16,"Deutsche Bank":31.16,"Colgate-Palmolive Co.":30.86,"Unilever":29.09,"Xtrackers DAX Inhaber-Anteile 1D EUR o.N.":24.78,"Rolls-Royce":16.24,"Gazprom (ADR)":14.47,"iShares STOXX Europe 600 Real EstateUCITS ETF (DE) - EUR DIS":8.23,"Taiwan Semiconductor":7.5,"Daiichi Sankyo":7.49,"Pan American Silver":5.96,"BWX Technologies":5.31,"Kongsberg":4.9,"comdirect bank":3.75,"RTX":3.49,"Wirecard":1.8,"NVIDIA":0.36},"recent_tx":[{"date":"30.03.2026","type":"Sell","name":"Xtrackers DAX Inhaber-Anteile ","amount":1370.34,"shares":138.0,"realizedGains":101.58},{"date":"30.03.2026","type":"Dividend","name":"BWX Technologies","amount":2.76,"shares":16.0,"realizedGains":0},{"date":"27.03.2026","type":"Dividend","name":"Linde","amount":9.96,"shares":10.0,"realizedGains":0},{"date":"26.03.2026","type":"Dividend","name":"BlackRock","amount":14.54,"shares":4.0,"realizedGains":0},{"date":"20.03.2026","type":"Dividend","name":"RTX","amount":3.49,"shares":8.0,"realizedGains":0},{"date":"18.03.2026","type":"Dividend","name":"McDonald's","amount":5.95,"shares":5.0,"realizedGains":0},{"date":"17.03.2026","type":"Buy","name":"Adobe Systems","amount":2013.3,"shares":9.0,"realizedGains":0},{"date":"13.03.2026","type":"Dividend","name":"Microsoft","amount":14.47,"shares":25.0,"realizedGains":0},{"date":"11.03.2026","type":"Dividend","name":"Chevron Corp.","amount":13.89,"shares":12.0,"realizedGains":0},{"date":"10.03.2026","type":"Buy","name":"FUTURE","amount":2120.0,"shares":400.0,"realizedGains":0},{"date":"10.03.2026","type":"Buy","name":"Sanofi","amount":765.5,"shares":10.0,"realizedGains":0},{"date":"10.03.2026","type":"Buy","name":"Samsung Electronics (GDR)","amount":2760.0,"shares":1.0,"realizedGains":0},{"date":"10.03.2026","type":"Sell","name":"PepsiCo","amount":2633.4,"shares":19.0,"realizedGains":9.76},{"date":"10.03.2026","type":"Sell","name":"AbbVie","amount":1366.4,"shares":7.0,"realizedGains":266.28},{"date":"09.03.2026","type":"Buy","name":"Mercedes-Benz","amount":538.6,"shares":10.0,"realizedGains":0},{"date":"09.03.2026","type":"Buy","name":"TSMC (ADR)","amount":1156.0,"shares":4.0,"realizedGains":0},{"date":"09.03.2026","type":"Dividend","name":"Xtrackers MSCI World UCITS ETF","amount":30.51,"shares":124.0,"realizedGains":0},{"date":"05.03.2026","type":"Sell","name":"Unilever","amount":940.16,"shares":16.0,"realizedGains":147.29},{"date":"04.03.2026","type":"Buy","name":"Bayer","amount":913.25,"shares":25.0,"realizedGains":0},{"date":"23.02.2026","type":"Buy","name":"iShares Core MSCI World UCITS ","amount":20108.79,"shares":177.0,"realizedGains":0},{"date":"20.02.2026","type":"Dividend","name":"Caterpillar","amount":6.51,"shares":6.0,"realizedGains":0},{"date":"18.02.2026","type":"Dividend","name":"Procter & Gamble","amount":6.8,"shares":18.0,"realizedGains":0},{"date":"18.02.2026","type":"Dividend","name":"AbbVie","amount":8.66,"shares":7.0,"realizedGains":0},{"date":"17.02.2026","type":"Dividend","name":"Siemens","amount":58.85,"shares":11.0,"realizedGains":0},{"date":"13.02.2026","type":"Buy","name":"Fiserv","amount":1487.4,"shares":30.0,"realizedGains":0},{"date":"10.02.2026","type":"Buy","name":"Bayer","amount":922.0,"shares":20.0,"realizedGains":0},{"date":"10.02.2026","type":"Buy","name":"Allianz","amount":755.4,"shares":2.0,"realizedGains":0},{"date":"10.02.2026","type":"Buy","name":"Microsoft","amount":2122.2,"shares":6.0,"realizedGains":0},{"date":"09.02.2026","type":"Sell","name":"Pan American Silver","amount":1871.94,"shares":42.0,"realizedGains":882.28},{"date":"03.02.2026","type":"Dividend","name":"Bristol Myers Squibb","amount":39.55,"shares":88.0,"realizedGains":0},{"date":"27.01.2026","type":"Buy","name":"Procter & Gamble","amount":1141.02,"shares":9.0,"realizedGains":0},{"date":"23.01.2026","type":"Buy","name":"Deckers Outdoor Co.","amount":1042.08,"shares":12.0,"realizedGains":0},{"date":"22.01.2026","type":"Sell","name":"Nextera Energy","amount":1077.0,"shares":15.0,"realizedGains":57.28},{"date":"21.01.2026","type":"Buy","name":"Microsoft","amount":1540.4,"shares":4.0,"realizedGains":0},{"date":"21.01.2026","type":"Buy","name":"Vonovia","amount":1203.5,"shares":50.0,"realizedGains":0},{"date":"20.01.2026","type":"Buy","name":"Bayer","amount":1110.0,"shares":25.0,"realizedGains":0},{"date":"15.01.2026","type":"Dividend","name":"iShares STOXX Global Select Di","amount":27.15,"shares":108.0,"realizedGains":0},{"date":"14.01.2026","type":"Dividend","name":"Taiwan Semiconductor","amount":7.5,"shares":14.0,"realizedGains":0},{"date":"13.01.2026","type":"Buy","name":"RTX","amount":1334.76,"shares":8.0,"realizedGains":0},{"date":"10.01.2026","type":"Dividend","name":"Altria Group, Inc.","amount":59.32,"shares":77.0,"realizedGains":0}],"div_by_holding_top20":{"Mercedes-Benz":953.8,"Altria Group, Inc.":514.54,"Bristol Myers Squibb":511.23,"BMW":492.68,"Shell":473.38,"Xtrackers MSCI World UCITS ETF - 1D USD DIS":428.92,"Allianz":365.4,"BlackRock":318.95,"Hamborner REIT":318.87,"iShares STOXX Global Select Dividend 100 UCITS ETF (DE) - EUR DIS":311.48,"Mutares":253.5,"Lockheed Martin":219.51,"Carrefour":195.69,"Linde":182.78,"Medtronic":168.28,"Microsoft":167.88,"Vonovia":163.35,"Royal Dutch Shell A (alt)":140.96,"3M":118.45,"Siemens":116.05}};
+const HIST={"allTime":{"invested":200549.58,"withdrawn":79022.9,"netInvested":121526.68,"dividends":7695.36,"fees":1545.46,"tax":2635.03,"realizedGains":7239.26},"annual":{"2026":{"invested":53301.42,"withdrawn":17314.41,"dividends":407.31,"fees":0.0,"tax":0.0,"realizedGains":1013.73,"buys":23,"sells":11,"divCount":23},"2025":{"invested":43714.17,"withdrawn":12432.63,"dividends":2213.8,"fees":18.3,"tax":85.74,"realizedGains":62.76,"buys":52,"sells":8,"divCount":96},"2024":{"invested":28175.92,"withdrawn":18713.4,"dividends":1593.06,"fees":0.0,"tax":0.0,"realizedGains":239.51,"buys":37,"sells":10,"divCount":77},"2023":{"invested":7756.4,"withdrawn":5950.09,"dividends":1546.37,"fees":91.14,"tax":855.96,"realizedGains":3613.04,"buys":5,"sells":3,"divCount":60},"2022":{"invested":7059.74,"withdrawn":2596.24,"dividends":1049.95,"fees":145.77,"tax":470.86,"realizedGains":-645.57,"buys":10,"sells":3,"divCount":48},"2021":{"invested":37145.15,"withdrawn":17912.52,"dividends":657.85,"fees":529.48,"tax":1189.99,"realizedGains":2786.51,"buys":28,"sells":12,"divCount":38},"2020":{"invested":14023.75,"withdrawn":3913.41,"dividends":172.11,"fees":382.73,"tax":26.68,"realizedGains":135.08,"buys":16,"sells":8,"divCount":22},"2019":{"invested":9373.03,"withdrawn":190.2,"dividends":54.91,"fees":378.04,"tax":5.8,"realizedGains":34.2,"buys":28,"sells":1,"divCount":13}},"monthlyDivs":{"2026-04":42.72,"2026-03":130.66,"2026-02":120.37,"2026-01":113.56,"2025-12":142.96,"2025-11":57.5,"2025-10":92.93,"2025-09":176.85,"2025-08":50.31,"2025-07":224.32,"2025-06":327.99,"2025-05":785.26,"2025-04":39.66,"2025-03":121.87,"2025-02":114.16,"2025-01":79.99,"2024-12":104.22,"2024-11":65.91,"2024-10":69.56,"2024-09":105.04,"2024-08":42.57,"2024-07":74.92,"2024-06":125.23,"2024-05":744.09,"2024-04":56.8,"2024-03":115.36,"2024-02":38.07,"2024-01":51.29,"2023-12":96.82,"2023-11":23.12,"2023-10":43.01,"2023-09":94.38,"2023-08":29.08,"2023-07":36.89,"2023-06":215.22,"2023-05":753.48,"2023-04":20.86,"2023-03":112.27,"2023-02":59.66,"2023-01":61.58,"2022-12":68.34,"2022-11":19.99,"2022-10":54.32,"2022-09":81.78,"2022-08":51.86,"2022-07":56.09,"2022-06":111.48,"2022-05":395.81,"2022-04":45.98,"2022-03":82.7,"2022-02":42.65,"2022-01":38.95,"2021-12":73.03,"2021-11":3.83,"2021-10":15.18,"2021-09":71.93,"2021-08":24.25,"2021-07":24.45,"2021-06":45.94,"2021-05":302.39,"2021-04":44.43,"2021-03":45.86,"2021-02":3.37,"2021-01":3.19,"2020-12":30.41,"2020-11":48.11,"2020-10":6.32,"2020-09":18.87,"2020-07":4.65,"2020-06":14.47,"2020-05":17.07,"2020-04":3.01,"2020-03":24.78,"2020-01":4.42,"2019-12":13.97,"2019-10":3.43,"2019-09":10.2,"2019-08":14.47,"2019-07":5.3,"2019-06":1.8,"2019-05":4.85,"2019-04":0.54,"2019-01":0.35},"divByHolding":{"Mercedes-Benz":953.8,"Altria Group, Inc.":514.54,"Bristol Myers Squibb":511.23,"Shell":508.47,"BMW":492.68,"Xtrackers MSCI World UCITS ETF - 1D USD DIS":428.92,"Allianz":365.4,"BlackRock":318.95,"Hamborner REIT":318.87,"iShares STOXX Global Select Dividend 100 UCITS ETF (DE) - EUR DIS":311.48,"Mutares":253.5,"Lockheed Martin":219.51,"Carrefour":195.69,"Linde":182.78,"Medtronic":168.28,"Microsoft":167.88,"Vonovia":163.35,"Royal Dutch Shell A (alt)":140.96,"3M":118.45,"Siemens":116.05,"Sanofi":110.19,"SAP":95.25,"Xtrackers Stoxx Global Select Dividend 100 Swap UCITS ETF - 1D EUR DIS":94.3,"PepsiCo":91.92,"Coca-Cola":86.2,"Chevron Corp.":79.84,"Apple":68.94,"Daimler Truck":63.08,"adidas":58.0,"AbbVie":55.89,"Infineon Technologies":46.34,"McDonald's":41.23,"Eckert & Ziegler":40.0,"Procter & Gamble":38.31,"Caterpillar":33.57,"Nextera Energy":33.16,"Deutsche Bank":31.16,"Colgate-Palmolive Co.":30.86,"Unilever":29.09,"Xtrackers DAX Inhaber-Anteile 1D EUR o.N.":24.78,"Rolls-Royce":16.24,"Gazprom (ADR)":14.47,"iShares Core S&P 500 UCITS ETF - USD DIS":12.9,"iShares STOXX Europe 600 Real EstateUCITS ETF (DE) - EUR DIS":8.23,"Taiwan Semiconductor":7.5,"Daiichi Sankyo":7.49,"Pan American Silver":5.96,"BWX Technologies":5.31,"Kongsberg":4.9,"comdirect bank":3.75,"RTX":3.49,"Wirecard":1.8,"NVIDIA":0.42},"recentTx":[{"date":"02.04.2026","type":"Dividend","name":"NVIDIA","amount":0.06,"shares":10.0,"realizedGains":0},{"date":"02.04.2026","type":"Dividend","name":"Coca-Cola","amount":12.43,"shares":79.0,"realizedGains":0},{"date":"01.04.2026","type":"Sell","name":"iShares Core S&P 500 UCITS ETF - US","amount":6209.5,"shares":110.0,"realizedGains":-99.57},{"date":"01.04.2026","type":"Buy","name":"Berkshire Hathaway \u2018B\u2019","amount":3312.0,"shares":8.0,"realizedGains":0},{"date":"01.04.2026","type":"Buy","name":"Coca-Cola","amount":2753.1,"shares":42.0,"realizedGains":0},{"date":"01.04.2026","type":"Dividend","name":"iShares Core S&P 500 UCITS ETF - US","amount":12.9,"shares":110.0,"realizedGains":0},{"date":"01.04.2026","type":"Dividend","name":"PepsiCo","amount":17.33,"shares":19.0,"realizedGains":0},{"date":"31.03.2026","type":"Buy","name":"BlackRock","amount":1648.8,"shares":2.0,"realizedGains":0},{"date":"31.03.2026","type":"Dividend","name":"Shell","amount":35.09,"shares":151.0,"realizedGains":0},{"date":"31.03.2026","type":"Sell","name":"Deutsche Bank","amount":1121.85,"shares":45.0,"realizedGains":90.35},{"date":"30.03.2026","type":"Sell","name":"BNB","amount":102.71,"shares":0.1945,"realizedGains":-87.64},{"date":"30.03.2026","type":"Sell","name":"Bitcoin","amount":316.82,"shares":0.0055,"realizedGains":-157.19},{"date":"30.03.2026","type":"Sell","name":"Ethereum","amount":304.29,"shares":0.1722,"realizedGains":-196.69},{"date":"30.03.2026","type":"Buy","name":"Procter & Gamble","amount":1516.8,"shares":12.0,"realizedGains":0},{"date":"30.03.2026","type":"Sell","name":"Xtrackers DAX Inhaber-Anteile 1D EU","amount":1370.34,"shares":138.0,"realizedGains":101.58},{"date":"30.03.2026","type":"Dividend","name":"BWX Technologies","amount":2.76,"shares":16.0,"realizedGains":0},{"date":"27.03.2026","type":"Dividend","name":"Linde","amount":9.96,"shares":10.0,"realizedGains":0},{"date":"26.03.2026","type":"Dividend","name":"BlackRock","amount":14.54,"shares":4.0,"realizedGains":0},{"date":"20.03.2026","type":"Dividend","name":"RTX","amount":3.49,"shares":8.0,"realizedGains":0},{"date":"18.03.2026","type":"Dividend","name":"McDonald's","amount":5.95,"shares":5.0,"realizedGains":0},{"date":"17.03.2026","type":"Buy","name":"Adobe Systems","amount":2013.3,"shares":9.0,"realizedGains":0},{"date":"13.03.2026","type":"Dividend","name":"Microsoft","amount":14.47,"shares":25.0,"realizedGains":0},{"date":"11.03.2026","type":"Dividend","name":"Chevron Corp.","amount":13.89,"shares":12.0,"realizedGains":0},{"date":"10.03.2026","type":"Buy","name":"FUTURE","amount":2136.52,"shares":400.0,"realizedGains":0},{"date":"10.03.2026","type":"Buy","name":"Sanofi","amount":765.5,"shares":10.0,"realizedGains":0},{"date":"10.03.2026","type":"Buy","name":"Samsung Electronics (GDR)","amount":2760.0,"shares":1.0,"realizedGains":0},{"date":"10.03.2026","type":"Sell","name":"PepsiCo","amount":2633.4,"shares":19.0,"realizedGains":9.76},{"date":"10.03.2026","type":"Sell","name":"AbbVie","amount":1366.4,"shares":7.0,"realizedGains":266.28},{"date":"09.03.2026","type":"Buy","name":"Mercedes-Benz","amount":538.6,"shares":10.0,"realizedGains":0},{"date":"09.03.2026","type":"Buy","name":"TSMC (ADR)","amount":1156.0,"shares":4.0,"realizedGains":0},{"date":"09.03.2026","type":"Dividend","name":"Xtrackers MSCI World UCITS ETF - 1D","amount":30.51,"shares":124.0,"realizedGains":0},{"date":"05.03.2026","type":"Sell","name":"Unilever","amount":940.16,"shares":16.0,"realizedGains":147.29},{"date":"04.03.2026","type":"Buy","name":"Bayer","amount":913.25,"shares":25.0,"realizedGains":0},{"date":"23.02.2026","type":"Buy","name":"iShares Core MSCI World UCITS ETF -","amount":20108.79,"shares":177.0,"realizedGains":0},{"date":"20.02.2026","type":"Dividend","name":"Caterpillar","amount":6.51,"shares":6.0,"realizedGains":0},{"date":"18.02.2026","type":"Dividend","name":"Procter & Gamble","amount":6.8,"shares":18.0,"realizedGains":0},{"date":"18.02.2026","type":"Dividend","name":"AbbVie","amount":8.66,"shares":7.0,"realizedGains":0},{"date":"17.02.2026","type":"Dividend","name":"Siemens","amount":58.85,"shares":11.0,"realizedGains":0},{"date":"13.02.2026","type":"Buy","name":"Fiserv","amount":1487.4,"shares":30.0,"realizedGains":0},{"date":"10.02.2026","type":"Buy","name":"Bayer","amount":922.0,"shares":20.0,"realizedGains":0},{"date":"10.02.2026","type":"Buy","name":"Allianz","amount":755.4,"shares":2.0,"realizedGains":0},{"date":"10.02.2026","type":"Buy","name":"Microsoft","amount":2122.2,"shares":6.0,"realizedGains":0},{"date":"09.02.2026","type":"Sell","name":"Pan American Silver","amount":1871.94,"shares":42.0,"realizedGains":882.28},{"date":"03.02.2026","type":"Dividend","name":"Bristol Myers Squibb","amount":39.55,"shares":88.0,"realizedGains":0},{"date":"27.01.2026","type":"Buy","name":"Procter & Gamble","amount":1141.02,"shares":9.0,"realizedGains":0},{"date":"23.01.2026","type":"Buy","name":"Deckers Outdoor Co.","amount":1042.08,"shares":12.0,"realizedGains":0},{"date":"22.01.2026","type":"Sell","name":"Nextera Energy","amount":1077.0,"shares":15.0,"realizedGains":57.28},{"date":"21.01.2026","type":"Buy","name":"Microsoft","amount":1540.4,"shares":4.0,"realizedGains":0},{"date":"21.01.2026","type":"Buy","name":"Vonovia","amount":1203.5,"shares":50.0,"realizedGains":0},{"date":"20.01.2026","type":"Buy","name":"Bayer","amount":1110.0,"shares":25.0,"realizedGains":0}]};
 
 // ════════════════════════════════════════════════════════════════════
 // RENDER — HISTORY
 // ════════════════════════════════════════════════════════════════════
-function renderHist() {
-  const at = HIST.allTime;
+function renderHist(){
+  var at=HIST.allTime, pv=portVal();
+  var irr=pv>0&&at.netInvested>0?(Math.pow(pv/at.netInvested,1/7.33)-1)*100:0;
+  var years=Object.keys(HIST.annual).sort();
 
-  // ── All-time stats ────────────────────────────────────────────────
-  const portNow = portVal();
-  const totalReturn = portNow - at.netInvested + at.dividends - at.fees - at.tax;
-  setH('hist-alltime', `
-    <div class="stat-box">
-      <div class="sl">Capital Deployed</div>
-      <div class="sv">${F.k(at.invested)}</div>
-      <div class="ss">across all buys</div>
-    </div>
-    <div class="stat-box">
-      <div class="sl">Capital Withdrawn</div>
-      <div class="sv">${F.k(at.withdrawn)}</div>
-      <div class="ss">sells + returns</div>
-    </div>
-    <div class="stat-box">
-      <div class="sl">Net Invested</div>
-      <div class="sv">${F.k(at.netInvested)}</div>
-      <div class="ss">deployed − withdrawn</div>
-    </div>
-    <div class="stat-box">
-      <div class="sl">Dividends Received</div>
-      <div class="sv pos">${F.k(at.dividends)}</div>
-      <div class="ss">€7,618 over 7 years</div>
-    </div>
-    <div class="stat-box">
-      <div class="sl">Fees Paid (Deutsche Bank)</div>
-      <div class="sv neg">${F.k(at.fees)}</div>
-      <div class="ss">brokerage commissions</div>
-    </div>
-    <div class="stat-box">
-      <div class="sl">Tax Paid (WHT)</div>
-      <div class="sv neg">${F.k(at.tax)}</div>
-      <div class="ss">withholding tax</div>
-    </div>
-    <div class="stat-box">
-      <div class="sl">Realized Gains</div>
-      <div class="sv ${at.realizedGains>=0?'pos':'neg'}">${at.realizedGains>=0?'+':''}${F.k(at.realizedGains)}</div>
-      <div class="ss">net of all sells</div>
-    </div>
-    <div class="stat-box">
-      <div class="sl">IRR (CAGR)</div>
-      <div class="sv pos">${(Math.pow(portNow/at.netInvested,1/7.25)-1).toFixed(2)*100>0?(Math.pow(portNow/at.netInvested,1/7.25)-1).toFixed(2)*100+'%':'11.05%'}</div>
-      <div class="ss">since Jan 2019</div>
-    </div>
-  `);
+  function sc(l,s,v,c){return '<div class="h-stat"><div class="hl">'+l+'</div><div class="hv '+c+'">'+v+'</div><div class="hs">'+s+'</div></div>';}
 
-  // ── Annual bars ───────────────────────────────────────────────────
-  const ann = HIST.annual;
-  const years = Object.keys(ann).sort();
-  const maxInv = Math.max(...years.map(y => ann[y].invested));
-  setH('hist-annual-bars', years.map(y => {
-    const d = ann[y];
-    const net = d.invested - d.withdrawn;
-    const invPct = d.invested/maxInv*100;
-    const divPct = d.dividends/d.invested*100;
-    return `<div class="yr-bar-row">
-      <div class="yr-bar-lbl">${y}</div>
-      <div class="yr-bar-track" style="cursor:default" title="${y}: invested ${F.k(d.invested)}, withdrawn ${F.k(d.withdrawn)}, divs ${F.k(d.dividends)}">
-        <div class="yr-bar-inv" style="width:${invPct}%">${F.k(d.invested)}</div>
-      </div>
-      <div style="font-size:9px;color:var(--green);width:40px;text-align:right;flex-shrink:0;font-variant-numeric:tabular-nums">
-        +${F.k(d.dividends)}
-      </div>
-    </div>`;
+  setH('hist-alltime',
+    sc('Capital Deployed','Total spent on buys',F.k(at.invested),'neu')+
+    sc('Capital Withdrawn','Received from sells',F.k(at.withdrawn),'neu')+
+    sc('Net Invested','Deployed minus withdrawn',F.k(at.netInvested),'neu')+
+    sc('Dividends Received','All-time income',F.k(at.dividends),'pos')+
+    sc('Fees Paid (DB)','Brokerage commissions',F.k(at.fees),'neg')+
+    sc('Tax Paid','WHT and CGT withheld',F.k(at.tax),'neg')+
+    sc('Realized Gains (net)','Net P/L on all closed positions',(at.realizedGains>=0?'+':'')+F.e(at.realizedGains),'pos')+
+    sc('IRR (est.)','Current value vs net invested',irr.toFixed(2)+'%','pos')
+  );
+
+  var maxInv=Math.max.apply(null,years.map(function(y){return HIST.annual[y].invested;}));
+  setH('hist-annual-bars',years.map(function(y){
+    var d=HIST.annual[y], w=Math.round(d.invested/maxInv*100);
+    return '<div class="yr-bar-row"><div class="yr-bar-lbl">'+y+'</div>'+
+      '<div class="yr-bar-track"><div class="yr-bar-inv" style="width:'+w+'%" title="Buys: '+F.k(d.invested)+' | Sells: '+F.k(d.withdrawn)+' | Divs: '+F.k(d.dividends)+'">'+F.k(d.invested)+'</div></div>'+
+      '<div style="font-size:9px;color:var(--green);width:48px;text-align:right;flex-shrink:0">+'+F.k(d.dividends)+'</div>'+
+    '</div>';
   }).join(''));
 
-  // ── Monthly dividend bars (last 24 months) ────────────────────────
-  const md = HIST.monthlyDivs;
-  const mdKeys = Object.keys(md).sort().slice(-24);
-  const maxDiv = Math.max(...mdKeys.map(k => md[k]));
-  setH('hist-div-bars',
-    `<div style="display:grid;grid-template-columns:repeat(24,1fr);gap:2px;align-items:flex-end;height:60px">` +
-    mdKeys.map(k => {
-      const h = Math.max(md[k]/maxDiv*100, 4);
-      const mo = k.slice(5,7);
-      const isQ2 = mo === '05'; // Big months (May = annual divs)
-      return `<div title="${k}: €${md[k]}" style="height:100%;display:flex;flex-direction:column;justify-content:flex-end;cursor:default">
-        <div style="height:${h}%;background:${isQ2?'var(--gold)':'var(--blue)'};opacity:${isQ2?1:.7};border-radius:2px 2px 0 0;min-height:2px"></div>
-      </div>`;
-    }).join('') +
-    `</div>
-    <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:9px;color:var(--hint)">
-      <span>${mdKeys[0]?.slice(0,7)||''}</span>
-      <span>Total last 12M: ${F.k(mdKeys.slice(-12).reduce((s,k)=>s+md[k],0))}</span>
-      <span>${mdKeys[mdKeys.length-1]?.slice(0,7)||''}</span>
-    </div>`);
+  var md=HIST.monthlyDivs, mdKeys=Object.keys(md).sort().slice(-24);
+  var maxD=Math.max.apply(null,mdKeys.map(function(k){return md[k];}));
+  var total12=mdKeys.slice(-12).reduce(function(s,k){return s+md[k];},0);
+  var bars='<div style="display:grid;grid-template-columns:repeat(24,1fr);gap:2px;align-items:flex-end;height:70px">';
+  mdKeys.forEach(function(k){
+    var h=Math.max(Math.round(md[k]/maxD*100),3), big=(k.slice(5,7)==='05'||k.slice(5,7)==='06');
+    bars+='<div title="'+k+': EUR'+md[k].toFixed(2)+'" style="height:100%;display:flex;flex-direction:column;justify-content:flex-end"><div style="height:'+h+'%;background:'+(big?'var(--gold)':'var(--blue)')+';opacity:'+(big?'1':'.65')+';border-radius:2px 2px 0 0;min-height:2px"></div></div>';
+  });
+  bars+='</div><div style="display:flex;justify-content:space-between;margin-top:5px;font-size:9px;color:var(--hint)"><span>'+mdKeys[0].slice(0,7)+'</span><span style="color:var(--text)">Last 12M: '+F.k(total12)+'</span><span>'+mdKeys[mdKeys.length-1].slice(0,7)+'</span></div>';
+  setH('hist-div-bars',bars);
 
-  // ── Top dividend payers ───────────────────────────────────────────
-  const dp = HIST.div_by_holding_top20 || HIST.divByHolding;
-  const maxDP = Object.values(dp)[0] || 1;
-  setH('hist-div-payers',
-    Object.entries(dp).slice(0,12).map(([name, total]) => {
-      const pct = total/maxDP*100;
-      return `<div class="hist-bar-row">
-        <div class="hist-bar-lbl">${F.k(total)}</div>
-        <div class="hist-bar-track">
-          <div class="hist-bar-fill" style="width:${pct}%;background:var(--blue);opacity:.8">
-            <span class="hist-bar-val">${name.slice(0,28)}</span>
-          </div>
-        </div>
-      </div>`;
-    }).join(''));
+  var dp=Object.entries(HIST.divByHolding).slice(0,15), maxDP=dp[0][1];
+  setH('hist-div-payers',dp.map(function(e){
+    var w=Math.round(e[1]/maxDP*100);
+    return '<div class="hbar2"><div class="hbar2-lbl">'+F.k(e[1])+'</div><div class="hbar2-track"><div class="hbar2-fill" style="width:'+w+'%;background:var(--blue);opacity:.8"><span class="hbar2-name">'+e[0].slice(0,30)+'</span></div></div></div>';
+  }).join(''));
 
-  // ── Recent transactions ───────────────────────────────────────────
-  const tx = HIST.recentTx;
-  setH('hist-tx', tx.map(t => {
-    const cls = t.type==='Buy'?'buy':t.type==='Sell'?'sell':'div';
-    const label = t.type==='Dividend'?'DIV':t.type.toUpperCase();
-    const amtColor = t.type==='Dividend'?'var(--green)':t.type==='Buy'?'var(--blue)':'var(--red)';
-    return `<div class="tx-row">
-      <div class="tx-type ${cls}">${label}</div>
-      <div class="tx-body">
-        <div class="tx-name">${t.name}</div>
-        <div class="tx-date">${t.date}${t.realizedGains?'  ·  G/L: '+(t.realizedGains>=0?'+':'')+F.k(t.realizedGains):''}</div>
-      </div>
-      <div class="tx-amt" style="color:${amtColor}">${t.type==='Buy'?'−':'+'}&euro;${Math.abs(t.amount).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
-    </div>`;
+  setH('hist-tx',HIST.recentTx.map(function(t){
+    var cls=t.type==='Buy'?'buy':t.type==='Sell'?'sell':'div';
+    var lbl=t.type==='Dividend'?'DIV':t.type.toUpperCase();
+    var col=t.type==='Dividend'?'var(--green)':t.type==='Buy'?'var(--blue)':'var(--red)';
+    var amt=Math.abs(t.amount).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2});
+    var rg=t.realizedGains?'  G/L: '+(t.realizedGains>=0?'+':'')+F.e(t.realizedGains):'';
+    return '<div class="tx-row"><div class="tx-pill '+cls+'">'+lbl+'</div><div class="tx-b"><div class="tx-n">'+t.name+'</div><div class="tx-d" style="color:var(--muted)">'+t.date+(rg?'  <span style="color:var(--hint)">'+rg+'</span>':'')+'</div></div><div class="tx-amt" style="color:'+col+'">'+(t.type==='Buy'?'-':'+')+' EUR '+amt+'</div></div>';
   }).join(''));
 }
 
@@ -1741,6 +2027,8 @@ function renderAll() {
 load();
 renderAll();
 setTimeout(refreshPrices, 500);
+
+
 </script>
 </body>
 </html>
