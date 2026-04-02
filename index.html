@@ -1,0 +1,1862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Finance OS">
+<meta name="theme-color" content="#0a1628">
+<link rel="manifest" href="manifest.json">
+<title>Finance OS</title>
+<style>
+:root{
+  --bg:#07111f; --card:#0f1e32; --card2:#162640; --navy:#0a1628;
+  --gold:#c9962e; --gold2:#e8b84b;
+  --border:rgba(255,255,255,.07); --border2:rgba(255,255,255,.13);
+  --text:#e8e3da; --muted:#6e7e98; --hint:#3a4d66;
+  --green:#22c55e; --red:#ef4444; --amber:#f59e0b; --blue:#3b82f6; --purple:#a78bfa;
+  --green-d:rgba(34,197,94,.12); --red-d:rgba(239,68,68,.1); --amber-d:rgba(245,158,11,.1);
+  --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
+  --r:10px; --rl:16px; --rxl:22px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg)}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif;
+  color:var(--text);overflow:hidden;display:flex;flex-direction:column}
+
+/* ── TOPBAR ── */
+.tb{padding:calc(var(--safe-t)+10px) 16px 10px;display:flex;align-items:center;
+  justify-content:space-between;background:var(--navy);border-bottom:1px solid var(--border);flex-shrink:0}
+.tb-brand{font-size:15px;font-weight:700;letter-spacing:-.02em;color:var(--text)}
+.tb-brand small{display:block;font-size:9px;font-weight:500;color:var(--muted);
+  letter-spacing:.1em;text-transform:uppercase;margin-top:1px}
+.tb-r{display:flex;gap:7px;align-items:center}
+.btn{padding:6px 13px;border-radius:var(--r);border:1px solid var(--border2);background:var(--card2);
+  color:var(--muted);font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;
+  transition:all .12s;white-space:nowrap}
+.btn:active{opacity:.7}
+.btn-gold{background:var(--gold);color:#0a1628;border-color:var(--gold);font-weight:700}
+.btn-sm{padding:4px 10px;font-size:11px}
+
+/* ── NAV ── */
+.nav{display:flex;background:var(--navy);border-bottom:1px solid var(--border);flex-shrink:0}
+.nav-btn{flex:1;padding:9px 2px 8px;text-align:center;background:none;border:none;
+  border-bottom:2px solid transparent;color:var(--muted);font-family:inherit;cursor:pointer;
+  transition:all .12s;font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;
+  display:flex;flex-direction:column;align-items:center;gap:2px}
+.nav-btn .ic{font-size:16px;line-height:1}
+.nav-btn.on{color:var(--gold);border-bottom-color:var(--gold)}
+
+/* ── CONTENT ── */
+.content{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
+  padding-bottom:calc(var(--safe-b)+8px)}
+.screen{display:none}.screen.on{display:block}
+
+/* ── METRIC CARDS ── */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:0 14px 14px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--rl);
+  padding:13px;cursor:pointer;position:relative;overflow:hidden;transition:border-color .12s}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--ac,var(--gold))}
+.card:active{border-color:var(--border2)}
+.card.span2{grid-column:1/-1}
+.card-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.11em;color:var(--muted);
+  font-weight:600;margin-bottom:6px}
+.card-val{font-size:21px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.card-val.xl{font-size:26px}
+.card-sub{font-size:11px;color:var(--muted);margin-top:4px;font-variant-numeric:tabular-nums}
+.card-d{font-size:12px;font-weight:600;margin-top:4px;font-variant-numeric:tabular-nums}
+.mini-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);
+  padding:10px;text-align:center}
+.mini-card .ml{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);
+  font-weight:600;margin-bottom:4px}
+.mini-card .mv{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1}
+.mini-card .ms{font-size:10px;color:var(--muted);margin-top:3px}
+
+/* ── COLOURS ── */
+.pos{color:var(--green)}.neg{color:var(--red)}.neu{color:var(--muted)}
+.gold{color:var(--gold)}
+
+/* ── SECTION HDR ── */
+.shd{display:flex;align-items:center;justify-content:space-between;padding:16px 14px 8px}
+.shd h3{font-size:9px;text-transform:uppercase;letter-spacing:.13em;color:var(--muted);font-weight:600}
+.shd .act{font-size:12px;color:var(--gold);cursor:pointer;font-weight:500}
+
+/* ── LIST ROWS ── */
+.row{display:flex;align-items:center;padding:11px 14px;border-bottom:1px solid var(--border);
+  cursor:pointer;transition:background .1s;gap:10px}
+.row:active{background:var(--card)}
+.row-ic{width:32px;height:32px;border-radius:var(--r);background:var(--card2);
+  border:1px solid var(--border);display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:700;color:var(--muted);flex-shrink:0;letter-spacing:0}
+.row-b{flex:1;min-width:0}
+.row-t{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row-s{font-size:11px;color:var(--muted);margin-top:2px;font-variant-numeric:tabular-nums}
+.row-r{text-align:right;flex-shrink:0}
+.row-v{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
+.row-p{font-size:11px;margin-top:2px;font-variant-numeric:tabular-nums}
+
+/* ── FLAGS ── */
+.flags{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px}
+.flag{padding:1px 6px;border-radius:6px;font-size:9px;font-weight:700;letter-spacing:.04em}
+.flag-r{background:var(--red-d);color:#f87171}
+.flag-a{background:var(--amber-d);color:#fbbf24}
+.flag-g{background:var(--green-d);color:#4ade80}
+.flag-b{background:rgba(59,130,246,.12);color:#60a5fa}
+
+/* ── DRIFT BAR ── */
+.drift-row{display:flex;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);gap:10px}
+.drift-lbl{font-size:11px;font-weight:500;width:108px;flex-shrink:0;line-height:1.3}
+.drift-track{flex:1;height:7px;background:rgba(255,255,255,.05);border-radius:4px;
+  position:relative;overflow:visible}
+.drift-tgt{position:absolute;top:-2px;width:2px;height:11px;background:rgba(255,255,255,.3);border-radius:1px}
+.drift-fill{height:100%;border-radius:4px;transition:width .5s ease}
+.drift-fill.ok{background:var(--green)}
+.drift-fill.warn{background:var(--amber)}
+.drift-fill.over{background:var(--red)}
+.drift-nums{font-size:11px;font-variant-numeric:tabular-nums;color:var(--muted);
+  text-align:right;width:76px;flex-shrink:0}
+.drift-delta{font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;width:38px;text-align:right}
+
+/* ── HORIZ BAR ── */
+.hbar-row{display:flex;align-items:center;padding:8px 14px;border-bottom:1px solid var(--border);gap:8px}
+.hbar-lbl{font-size:11px;font-weight:500;width:90px;flex-shrink:0}
+.hbar-track{flex:1;height:5px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden}
+.hbar-fill{height:100%;border-radius:3px;transition:width .5s ease}
+.hbar-val{font-size:11px;font-variant-numeric:tabular-nums;color:var(--muted);width:38px;text-align:right}
+.hbar-badge{font-size:9px;font-weight:700;padding:1px 6px;border-radius:5px}
+
+/* ── WARN BANNERS ── */
+.warn{display:flex;align-items:flex-start;gap:8px;margin:6px 14px;border-radius:var(--r);
+  padding:9px 11px;font-size:12px;font-weight:500;line-height:1.4}
+.warn-r{background:var(--red-d);border:1px solid rgba(239,68,68,.2);color:#f87171}
+.warn-a{background:var(--amber-d);border:1px solid rgba(245,158,11,.18);color:#fbbf24}
+.warn-g{background:var(--green-d);border:1px solid rgba(34,197,94,.2);color:#4ade80}
+.warn-icon{font-size:13px;flex-shrink:0;margin-top:1px}
+
+/* ── SCREENER ── */
+.sc-score{width:88px;height:88px;border-radius:50%;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;margin:0 auto 12px;border:3px solid var(--border2)}
+.sc-score .sv{font-size:26px;font-weight:800;line-height:1}
+.sc-score .sl{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-top:2px}
+.chk{display:flex;align-items:flex-start;gap:9px;padding:9px 0;border-bottom:1px solid var(--border)}
+.chk-dot{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:10px;flex-shrink:0;margin-top:1px;font-weight:700}
+.chk-dot.p{background:var(--green-d);color:var(--green)}
+.chk-dot.w{background:var(--amber-d);color:var(--amber)}
+.chk-dot.f{background:var(--red-d);color:var(--red)}
+.chk-t{font-size:12px;font-weight:500;margin-bottom:2px}
+.chk-d{font-size:11px;color:var(--muted);line-height:1.4}
+.size-box{background:var(--card);border:1px solid var(--border);border-radius:var(--rl);
+  padding:14px;margin:12px 0}
+.size-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;
+  border-bottom:1px solid var(--border);font-size:12px}
+.size-row:last-child{border-bottom:none;font-size:14px;font-weight:700;padding-top:10px}
+
+/* ── P&L ── */
+.yr-tabs{display:flex;gap:5px;padding:12px 14px 4px;overflow-x:auto;scrollbar-width:none}
+.yr-tabs::-webkit-scrollbar{display:none}
+.yr-tab{padding:5px 13px;border-radius:20px;font-size:12px;cursor:pointer;border:1px solid var(--border);
+  background:transparent;color:var(--muted);font-family:inherit;font-weight:500;white-space:nowrap}
+.yr-tab.on{background:var(--gold);color:var(--navy);border-color:var(--gold)}
+.pl-sec{padding:10px 14px 3px;font-size:9px;text-transform:uppercase;letter-spacing:.11em;
+  color:var(--muted);font-weight:600;display:flex;justify-content:space-between;align-items:center}
+.pl-row{display:flex;justify-content:space-between;padding:9px 14px;border-bottom:1px solid var(--border);font-size:13px}
+.pl-row .lb{color:var(--muted)}.pl-row .lb.dk{color:var(--text);font-weight:500}
+.pl-row.tot{background:var(--card)}
+.pl-row.sur{font-size:16px;font-weight:700;padding:13px 14px;border:none}
+
+/* ── DEBT ── */
+.debt-bar{height:20px;background:rgba(255,255,255,.04);border-radius:var(--r);
+  overflow:hidden;display:flex;margin:10px 0 5px}
+.debt-pd{background:var(--green-d);display:flex;align-items:center;justify-content:center;
+  font-size:10px;color:var(--green);font-weight:600;transition:width .5s ease}
+.debt-lf{flex:1;background:var(--red-d);display:flex;align-items:center;justify-content:center;
+  font-size:10px;color:var(--red);font-weight:600}
+.debt-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.dst{background:var(--bg);border-radius:var(--r);padding:10px}
+.dst .dl{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:3px;font-weight:600}
+.dst .dv{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
+
+/* ── SCHED ── */
+.sched{overflow-x:auto}
+.sched table{width:100%;border-collapse:collapse;font-size:11px;font-variant-numeric:tabular-nums}
+.sched th{padding:7px 10px;text-align:right;background:var(--card);border-bottom:1px solid var(--border);
+  color:var(--muted);font-weight:600;white-space:nowrap;font-size:9px;text-transform:uppercase;letter-spacing:.07em}
+.sched th:first-child{text-align:left}
+.sched td{padding:6px 10px;text-align:right;border-bottom:1px solid var(--border)}
+.sched td:first-child{text-align:left}
+.sched tr.cur td{background:rgba(201,150,46,.08);color:var(--gold);font-weight:600}
+.sched tr:hover td{background:var(--card)}
+
+/* ── SETTINGS ── */
+.set-grp{margin:0 14px 12px;background:var(--card);border:1px solid var(--border);
+  border-radius:var(--rl);overflow:hidden}
+.set-row{display:flex;align-items:center;padding:13px 14px;border-bottom:1px solid var(--border);
+  cursor:pointer;transition:background .1s;gap:10px}
+.set-row:last-child{border-bottom:none}
+.set-row:active{background:var(--card2)}
+.set-lbl{flex:1;font-size:13px}
+.set-val{font-size:13px;color:var(--gold);font-weight:500;font-variant-numeric:tabular-nums}
+.set-arr{color:var(--muted);font-size:12px}
+
+/* ── MODAL ── */
+.ovl{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:200;align-items:flex-end}
+.ovl.on{display:flex}
+.sheet{background:var(--card);border-radius:var(--rxl) var(--rxl) 0 0;width:100%;
+  padding-bottom:calc(var(--safe-b)+8px);max-height:92vh;overflow-y:auto;
+  animation:sup .25s cubic-bezier(.34,1.1,.64,1)}
+@keyframes sup{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sh-hnd{width:34px;height:4px;background:var(--border2);border-radius:2px;margin:11px auto 0}
+.sh-hd{display:flex;align-items:center;justify-content:space-between;padding:13px 18px;
+  border-bottom:1px solid var(--border)}
+.sh-hd h3{font-size:16px;font-weight:700}
+.sh-cl{width:28px;height:28px;border-radius:50%;border:1px solid var(--border);
+  background:var(--card2);color:var(--muted);cursor:pointer;font-size:13px;
+  display:flex;align-items:center;justify-content:center}
+.sh-bd{padding:16px 18px}
+.fld{margin-bottom:13px}
+.fld label{display:block;font-size:10px;font-weight:600;text-transform:uppercase;
+  letter-spacing:.09em;color:var(--muted);margin-bottom:5px}
+.fld input,.fld select,.fld textarea{width:100%;background:var(--bg);border:1px solid var(--border2);
+  border-radius:var(--r);padding:11px 13px;color:var(--text);font-size:15px;
+  font-family:inherit;outline:none;transition:border-color .12s;-webkit-appearance:none}
+.fld input:focus,.fld select:focus{border-color:var(--gold)}
+.fld .hint{font-size:11px;color:var(--hint);margin-top:3px;line-height:1.4}
+.fld-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sbtn{width:100%;padding:14px;background:var(--gold);color:#0a1628;border:none;border-radius:var(--rl);
+  font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:6px;transition:opacity .12s}
+.sbtn:active{opacity:.8}
+.dbtn{width:100%;padding:11px;background:none;border:1px solid rgba(239,68,68,.3);
+  border-radius:var(--rl);color:#f87171;font-size:14px;cursor:pointer;margin-top:7px;font-family:inherit}
+.note-box{background:rgba(201,150,46,.08);border:1px solid rgba(201,150,46,.2);border-radius:var(--r);
+  padding:9px 11px;font-size:11px;color:#fbbf24;line-height:1.5;margin-bottom:13px}
+.disc-box{background:var(--red-d);border:1px solid rgba(239,68,68,.2);border-radius:var(--r);
+  padding:9px 11px;font-size:11px;color:#f87171;line-height:1.5;margin-top:12px}
+
+/* ── PROJ BARS ── */
+.proj-bars{display:flex;align-items:flex-end;gap:5px;height:100px;padding:0 14px}
+.proj-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
+  height:100%;justify-content:flex-end}
+.proj-bar{width:100%;border-radius:3px 3px 0 0;min-height:4px;transition:height .5s ease}
+.proj-bar.c{background:rgba(59,130,246,.3);border:1px solid rgba(59,130,246,.4)}
+.proj-bar.f{background:rgba(201,150,46,.3);border:1px solid rgba(201,150,46,.4)}
+
+/* ── LIVE ── */
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);
+  animation:pulse 2s infinite;display:inline-block}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%) translateY(4px);
+  background:var(--card2);border:1px solid var(--border2);border-radius:var(--r);
+  padding:8px 16px;font-size:12px;font-weight:500;z-index:400;opacity:0;
+  transition:all .2s;pointer-events:none;white-space:nowrap}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── TABLET ── */
+@media(min-width:540px){
+  body{max-width:420px;margin:0 auto;box-shadow:0 0 100px rgba(0,0,0,.95)}
+  html{display:flex;justify-content:center;background:#040a14}
+}
+
+/* ── HISTORY ── */
+.hist-bar-row{display:flex;align-items:center;gap:8px;padding:5px 14px}
+.hist-bar-lbl{font-size:10px;color:var(--muted);width:32px;text-align:right;flex-shrink:0;font-variant-numeric:tabular-nums}
+.hist-bar-track{flex:1;height:14px;background:rgba(255,255,255,.04);border-radius:3px;overflow:hidden;cursor:pointer;position:relative}
+.hist-bar-fill{height:100%;border-radius:3px;transition:width .4s ease;display:flex;align-items:center;padding-left:5px}
+.hist-bar-val{font-size:9px;font-weight:600;color:rgba(255,255,255,.7);white-space:nowrap;font-variant-numeric:tabular-nums}
+.tx-row{display:flex;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);gap:9px}
+.tx-type{font-size:9px;font-weight:700;letter-spacing:.05em;padding:2px 7px;border-radius:5px;flex-shrink:0;width:52px;text-align:center}
+.tx-type.buy{background:rgba(34,197,94,.15);color:var(--green)}
+.tx-type.sell{background:rgba(239,68,68,.12);color:var(--red)}
+.tx-type.div{background:rgba(59,130,246,.12);color:var(--blue)}
+.tx-body{flex:1;min-width:0}
+.tx-name{font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx-date{font-size:10px;color:var(--muted);margin-top:1px}
+.tx-amt{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;text-align:right;flex-shrink:0}
+.stat-2{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 14px 14px}
+.stat-box{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:11px}
+.stat-box .sl{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:600;margin-bottom:4px}
+.stat-box .sv{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums}
+.stat-box .ss{font-size:10px;color:var(--muted);margin-top:2px}
+.yr-bar-wrap{padding:0 14px 8px}
+.yr-bar-row{display:flex;align-items:center;gap:6px;margin-bottom:5px}
+.yr-bar-lbl{font-size:10px;color:var(--muted);width:34px;text-align:right;flex-shrink:0}
+.yr-bar-track{flex:1;height:18px;background:rgba(255,255,255,.04);border-radius:3px;overflow:hidden;position:relative}
+.yr-bar-inv{height:100%;background:rgba(59,130,246,.35);border-radius:3px;display:flex;align-items:center;padding-left:5px;font-size:9px;color:rgba(255,255,255,.6);white-space:nowrap;font-variant-numeric:tabular-nums}
+.yr-bar-div{position:absolute;right:0;top:0;height:100%;background:rgba(34,197,94,.5);display:flex;align-items:center;padding-right:4px;font-size:9px;color:rgba(255,255,255,.8)}
+
+/* ── PIN LOCK ── */
+.pin-screen{position:fixed;inset:0;background:var(--bg);z-index:999;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px}
+.pin-logo{font-size:22px;font-weight:800;color:var(--gold);letter-spacing:-.02em;margin-bottom:6px}
+.pin-sub{font-size:11px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:40px}
+.pin-dots{display:flex;gap:14px;margin-bottom:36px}
+.pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--border2);
+  transition:all .15s}
+.pin-dot.filled{background:var(--gold);border-color:var(--gold)}
+.pin-dot.error{background:var(--red);border-color:var(--red)}
+.pin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:240px}
+.pin-key{height:64px;border-radius:var(--rl);border:1px solid var(--border2);
+  background:var(--card);color:var(--text);font-size:22px;font-weight:500;
+  cursor:pointer;transition:all .12s;font-family:inherit;display:flex;
+  align-items:center;justify-content:center}
+.pin-key:active{background:var(--card2);transform:scale(.94)}
+.pin-key.del{font-size:16px;color:var(--muted)}
+.pin-key.empty{border:none;background:none;cursor:default}
+.pin-err{font-size:12px;color:var(--red);margin-top:16px;height:16px;text-align:center}
+.pin-hint{font-size:11px;color:var(--hint);margin-top:20px;text-align:center;line-height:1.6;cursor:pointer}
+</style>
+</head>
+<body>
+
+
+<!-- PIN LOCK -->
+<div class="pin-screen" id="pin-screen">
+  <div class="pin-logo">Finance OS</div>
+  <div class="pin-sub">Philip & Teresa</div>
+  <div class="pin-dots">
+    <div class="pin-dot" id="pd0"></div>
+    <div class="pin-dot" id="pd1"></div>
+    <div class="pin-dot" id="pd2"></div>
+    <div class="pin-dot" id="pd3"></div>
+  </div>
+  <div class="pin-grid">
+    <button class="pin-key" onclick="pinKey('1')">1</button>
+    <button class="pin-key" onclick="pinKey('2')">2</button>
+    <button class="pin-key" onclick="pinKey('3')">3</button>
+    <button class="pin-key" onclick="pinKey('4')">4</button>
+    <button class="pin-key" onclick="pinKey('5')">5</button>
+    <button class="pin-key" onclick="pinKey('6')">6</button>
+    <button class="pin-key" onclick="pinKey('7')">7</button>
+    <button class="pin-key" onclick="pinKey('8')">8</button>
+    <button class="pin-key" onclick="pinKey('9')">9</button>
+    <button class="pin-key empty"></button>
+    <button class="pin-key" onclick="pinKey('0')">0</button>
+    <button class="pin-key del" onclick="pinDel()">⌫</button>
+  </div>
+  <div class="pin-err" id="pin-err"></div>
+  <div class="pin-hint" id="pin-hint" onclick="pinForgot()">Forgot PIN?</div>
+</div>
+
+<!-- TOPBAR -->
+<div class="tb">
+  <div class="tb-brand">Finance OS <small>Philip & Teresa</small></div>
+  <div class="tb-r">
+    <span style="font-size:11px;color:var(--muted)" id="price-status">
+      <span class="live-dot" style="background:var(--muted)"></span> —
+    </span>
+    <button class="btn btn-sm" id="refresh-btn" onclick="refreshPrices()">⟳ Prices</button>
+    <button class="btn btn-gold btn-sm" onclick="openModal('editBS')">Edit</button>
+  </div>
+</div>
+
+<!-- NAV — 6 tabs, all fit -->
+<div class="nav">
+  <button class="nav-btn on" id="nav-dash" onclick="nav('dash')"><span class="ic">⬡</span>Overview</button>
+  <button class="nav-btn" id="nav-port" onclick="nav('port')"><span class="ic">◈</span>Portfolio</button>
+  <button class="nav-btn" id="nav-anlx" onclick="nav('anlx')"><span class="ic">◑</span>Analytics</button>
+  <button class="nav-btn" id="nav-pnl"  onclick="nav('pnl')"><span class="ic">◧</span>P&amp;L</button>
+  <button class="nav-btn" id="nav-debt" onclick="nav('debt')"><span class="ic">◫</span>Debt</button>
+  <button class="nav-btn" id="nav-set"  onclick="nav('set')"><span class="ic">◎</span>Settings</button>
+  <button class="nav-btn" id="nav-hist" onclick="nav('hist')"><span class="ic">◷</span>History</button>
+</div>
+
+<div class="content">
+
+<!-- ═══ OVERVIEW ═══ -->
+<div class="screen on" id="screen-dash">
+  <div class="grid2">
+    <div class="card span2" style="--ac:var(--gold)" onclick="openModal('editBS')">
+      <div class="card-lbl">Net Worth</div>
+      <div class="card-val xl" id="d-nw">—</div>
+      <div class="card-sub" id="d-nw-sub">Assets — Liabilities</div>
+    </div>
+    <div class="card" style="--ac:var(--blue)" onclick="nav('port')">
+      <div class="card-lbl">Portfolio</div>
+      <div class="card-val" id="d-pv">—</div>
+      <div class="card-d" id="d-pv-d">—</div>
+    </div>
+    <div class="card" style="--ac:var(--green)" onclick="nav('pnl')">
+      <div class="card-lbl">Annual Divs</div>
+      <div class="card-val" id="d-div">—</div>
+      <div class="card-sub" id="d-div-y">— yield</div>
+    </div>
+    <div class="card" style="--ac:var(--red)" onclick="nav('debt')">
+      <div class="card-lbl">Mortgage</div>
+      <div class="card-val" id="d-mort">—</div>
+      <div class="card-sub neu">Dec 2052</div>
+    </div>
+    <div class="card" style="--ac:var(--amber)">
+      <div class="card-lbl">Total Liabilities</div>
+      <div class="card-val" id="d-liab">—</div>
+      <div class="card-sub" id="d-liab-sub">—</div>
+    </div>
+  </div>
+  <div class="shd"><h3>Alerts</h3><span class="act" onclick="nav('anlx')">Analytics →</span></div>
+  <div id="d-alerts"></div>
+  <div class="shd" style="margin-top:2px"><h3>Top 5 Holdings</h3><span class="act" onclick="nav('port')">All →</span></div>
+  <div id="d-top5"></div>
+  <div class="shd" style="margin-top:4px"><h3>Net Worth → 2030</h3></div>
+  <div class="proj-bars" id="d-proj-bars"></div>
+  <div style="display:flex;gap:4px;padding:3px 14px 16px" id="d-proj-lbls"></div>
+</div>
+
+<!-- ═══ PORTFOLIO ═══ -->
+<div class="screen" id="screen-port">
+  <div style="padding:12px 14px;background:var(--card);border-bottom:1px solid var(--border)">
+    <div class="grid3" style="padding:0"><div id="port-summary" style="display:contents"></div></div>
+  </div>
+  <div class="shd"><h3>Holdings — sorted by value</h3><span class="act" onclick="openModal('addHolding')">+ Add</span></div>
+  <div id="port-list"></div>
+</div>
+
+<!-- ═══ ANALYTICS ═══ -->
+<div class="screen" id="screen-anlx">
+  <!-- Warnings generated dynamically -->
+  <div id="anlx-warns"></div>
+
+  <div class="shd" style="padding-top:12px">
+    <h3>Performance  <span style="color:var(--hint);font-size:9px">(estimated — no live historical data)</span></h3>
+  </div>
+  <div class="grid3" id="anlx-perf"></div>
+
+  <div class="shd"><h3>Risk Metrics  <span style="color:var(--hint);font-size:9px">(model estimates)</span></h3></div>
+  <div class="grid3" id="anlx-risk"></div>
+
+  <div class="shd">
+    <h3>Bucket Allocation vs Target</h3>
+    <span class="act" onclick="openModal('editTargets')">Targets →</span>
+  </div>
+  <div id="anlx-buckets"></div>
+
+  <div class="shd"><h3>Sector Exposure</h3></div>
+  <div id="anlx-sectors"></div>
+
+  <div class="shd"><h3>Geographic Exposure</h3></div>
+  <div id="anlx-geo"></div>
+
+  <div class="shd"><h3>Value Screener</h3></div>
+  <div style="padding:0 14px 14px">
+    <button class="sbtn" onclick="openModal('screener')" style="margin-top:0">
+      Evaluate a New Stock →
+    </button>
+  </div>
+</div>
+
+<!-- ═══ P&L ═══ -->
+<div class="screen" id="screen-pnl">
+  <div class="yr-tabs" id="yr-tabs"></div>
+  <div id="pnl-body"></div>
+</div>
+
+<!-- ═══ DEBT ═══ -->
+<div class="screen" id="screen-debt">
+  <div class="shd" style="padding-top:14px">
+    <h3>Mortgage — Zionskirchstraße</h3>
+    <span class="act" onclick="openModal('editMort')">Edit →</span>
+  </div>
+  <div style="margin:0 14px;background:var(--card);border:1px solid var(--border);
+    border-radius:var(--rl);padding:14px" id="debt-summary"></div>
+  <div class="shd" style="margin-top:6px"><h3>Amortisation Schedule</h3></div>
+  <div class="sched"><table id="sched-tbl"></table></div>
+</div>
+
+<!-- ═══ SETTINGS ═══ -->
+<div class="screen" id="screen-set">
+  <div class="shd" style="padding-top:14px"><h3>Balance Sheet Inputs</h3></div>
+  <div class="set-grp" id="set-bs"></div>
+  <div class="shd"><h3>Mortgage</h3></div>
+  <div class="set-grp" id="set-mort"></div>
+  <div class="shd"><h3>Allocation Targets</h3></div>
+  <div class="set-grp" id="set-targets"></div>
+  <div class="shd"><h3>Data</h3></div>
+  <div class="set-grp">
+    <div class="set-row" onclick="exportData()">
+      <span class="set-lbl">Export backup (JSON)</span><span class="set-arr">↓</span></div>
+    <div class="set-row" onclick="importData()">
+      <span class="set-lbl">Import from backup</span><span class="set-arr">↑</span></div>
+    <div class="set-row" onclick="if(confirm('Reset all data to defaults?'))resetData()">
+      <span class="set-lbl" style="color:#f87171">Reset to defaults</span><span class="set-arr">↺</span></div>
+  </div>
+  <p style="padding:10px 14px 20px;font-size:11px;color:var(--hint);line-height:1.7">
+    Data saves automatically to this browser (localStorage).<br>
+    Use Export → Import to copy between browsers.
+  </p>
+</div>
+
+
+<!-- ═══ HISTORY ═══ -->
+<div class="screen" id="screen-hist">
+  <div class="shd" style="padding-top:14px"><h3>All-Time Summary</h3><span class="act" style="font-size:10px;color:var(--muted)">630 transactions · Jan 2019 – Mar 2026</span></div>
+  <div class="stat-2" id="hist-alltime"></div>
+
+  <div class="shd"><h3>Annual Capital Flow &amp; Dividends</h3></div>
+  <div class="yr-bar-wrap" id="hist-annual-bars"></div>
+
+  <div class="shd" style="margin-top:2px"><h3>Dividend Income — Monthly</h3></div>
+  <div style="padding:0 14px 4px;font-size:10px;color:var(--muted)">Last 24 months — tap bar for amount</div>
+  <div id="hist-div-bars" style="padding:4px 14px 8px"></div>
+
+  <div class="shd"><h3>Top Dividend Payers (all-time)</h3></div>
+  <div id="hist-div-payers"></div>
+
+  <div class="shd" style="margin-top:2px"><h3>Recent Transactions</h3></div>
+  <div id="hist-tx"></div>
+</div>
+
+</div><!-- /content -->
+
+<!-- MODAL -->
+<div class="ovl" id="ovl" onclick="bgClose(event)">
+  <div class="sheet">
+    <div class="sh-hnd"></div>
+    <div class="sh-hd">
+      <h3 id="sh-title">Edit</h3>
+      <button class="sh-cl" onclick="closeModal()">✕</button>
+    </div>
+    <div class="sh-bd" id="sh-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+
+// ════════════════════════════════════════════════════════════════════
+// PIN LOCK
+// ════════════════════════════════════════════════════════════════════
+(function() {
+  const KEY     = 'fos_pin';
+  const SESSION = 'fos_unlocked';
+  let entry = '';
+
+  function getPin()  { return localStorage.getItem(KEY); }
+  function setPin(p) { localStorage.setItem(KEY, p); }
+
+  function updateDots(shake) {
+    for (let i=0; i<4; i++) {
+      const d = document.getElementById('pd'+i);
+      d.classList.toggle('filled', i < entry.length);
+      d.classList.toggle('error', shake);
+    }
+  }
+
+  function unlock() {
+    sessionStorage.setItem(SESSION, '1');
+    document.getElementById('pin-screen').style.display = 'none';
+  }
+
+  function shake() {
+    updateDots(true);
+    document.getElementById('pin-err').textContent = 'Incorrect PIN';
+    setTimeout(() => {
+      entry = '';
+      updateDots(false);
+      document.getElementById('pin-err').textContent = '';
+    }, 800);
+  }
+
+  window.pinKey = function(digit) {
+    if (entry.length >= 4) return;
+    entry += digit;
+    updateDots(false);
+
+    if (entry.length === 4) {
+      const stored = getPin();
+      if (!stored) {
+        // First time — set this as the PIN
+        setPin(entry);
+        document.getElementById('pin-hint').textContent = 'PIN set. Remember it — there's no recovery without resetting data.';
+        setTimeout(unlock, 400);
+      } else if (entry === stored) {
+        unlock();
+      } else {
+        shake();
+      }
+    }
+  };
+
+  window.pinDel = function() {
+    if (entry.length > 0) {
+      entry = entry.slice(0, -1);
+      updateDots(false);
+    }
+  };
+
+  window.pinForgot = function() {
+    const stored = getPin();
+    if (!stored) return;
+    if (confirm('Reset PIN? This will NOT delete your financial data — only the PIN will be cleared. You\'ll set a new one on next load.')) {
+      localStorage.removeItem(KEY);
+      sessionStorage.removeItem(SESSION);
+      entry = '';
+      updateDots(false);
+      document.getElementById('pin-hint').textContent = 'PIN cleared. Enter a new 4-digit PIN.';
+      document.getElementById('pin-err').textContent = '';
+    }
+  };
+
+  // Check session (stays unlocked for the current browser tab)
+  if (sessionStorage.getItem(SESSION)) {
+    document.getElementById('pin-screen').style.display = 'none';
+  }
+
+  // Keyboard support
+  document.addEventListener('keydown', function(e) {
+    const ps = document.getElementById('pin-screen');
+    if (ps.style.display === 'none') return;
+    if (e.key >= '0' && e.key <= '9') pinKey(e.key);
+    if (e.key === 'Backspace') pinDel();
+  });
+})();
+
+// ════════════════════════════════════════════════════════════════════
+// DEFAULTS
+// ════════════════════════════════════════════════════════════════════
+const DEFAULTS = {
+  bs:{
+    portfolio:146866, apartment:258000, cash:78000,
+    pension:0, car:0, otherInv:3136, invoice:14280,
+    mortgage:189699, steuern:20100, ust:13560, parentLoan:24400, otherLiab:0
+  },
+  mortgage:{
+    original:212500, rate:0.0128, payment:700,
+    startYear:2022, startMonthIdx:4, elapsed:47
+  },
+  targets:{
+    buckets:{
+      'Core Passive':       {t:30, secs:['Passive','ETF','Gold'],   col:'#3b82f6'},
+      'Quality Compounders':{t:35, secs:['Tech','Fin','Ind','Staples','Disc'], col:'#c9962e'},
+      'Income Generators':  {t:20, secs:['Health','Energy','RE'],   col:'#22c55e'},
+      'Deep Value':         {t:10, secs:['Auto','Media','Crypto','Other'], col:'#f59e0b'},
+    },
+    driftWarn:5, maxPos:8, minDivYield:2.0
+  },
+  projection:{
+    monthlyRev:12000, revGrowth:5, monthlyExp:2800,
+    portReturn:10, newCapital:12000, propGrowth:3,
+    teresaMonthly:3000, rental:1443
+  },
+  pnl:{
+    2022:{freelance:0,rental:0,teresa:0,dividends:1050,other:0,pkv:0,mortgage:8400,weg:0,tax:0,living:0,betrieb:0,invest:0},
+    2023:{freelance:0,rental:0,teresa:0,dividends:1546,other:0,pkv:0,mortgage:8400,weg:0,tax:0,living:0,betrieb:0,invest:0},
+    2024:{freelance:0,rental:0,teresa:0,dividends:1593,other:0,pkv:0,mortgage:8400,weg:0,tax:0,living:0,betrieb:0,invest:0},
+    2025:{freelance:144000,rental:17316,teresa:36000,dividends:2214,other:0,pkv:8148,mortgage:8400,weg:2520,tax:20100,living:13200,betrieb:5039,invest:0},
+    2026:{freelance:144000,rental:17316,teresa:36000,dividends:2500,other:0,pkv:8148,mortgage:8400,weg:2520,tax:0,living:13200,betrieb:0,invest:0}
+  },
+  holdings:[
+    {name:"iShares MSCI World ACC",   t:"IWDA.AS", sh:177,    ccy:"EUR",cost:18245,div:0,  sec:"Passive"},
+    {name:"Xtrackers MSCI World DIS", t:"XDWD.DE", sh:124,    ccy:"EUR",cost:8798, div:150,sec:"Passive"},
+    {name:"iShares S&P 500 DIS",      t:"IUSA.DE", sh:110,    ccy:"EUR",cost:5954, div:77, sec:"Passive"},
+    {name:"iShares STOXX Div 100",    t:"ISPA.DE", sh:108,    ccy:"EUR",cost:2956, div:133,sec:"ETF"},
+    {name:"Xetra-Gold ETC",           t:"4GLD.DE", sh:25,     ccy:"EUR",cost:1518, div:0,  sec:"Gold"},
+    {name:"Xtrackers DAX ETF",        t:"DBXD.DE", sh:138,    ccy:"EUR",cost:1350, div:34, sec:"Passive"},
+    {name:"Microsoft",                t:"MSFT",    sh:25,     ccy:"USD",cost:6617, div:53, sec:"Tech"},
+    {name:"TSMC ADR",                 t:"TSM",     sh:24,     ccy:"USD",cost:5807, div:116,sec:"Tech"},
+    {name:"Shell PLC",                t:"SHELL.AS",sh:151,    ccy:"EUR",cost:3484, div:136,sec:"Energy"},
+    {name:"Berkshire B",              t:"BRK-B",   sh:11,     ccy:"USD",cost:4347, div:0,  sec:"Fin"},
+    {name:"Bristol Myers Squibb",     t:"BMY",     sh:88,     ccy:"USD",cost:4089, div:225,sec:"Health"},
+    {name:"Altria Group",             t:"MO",      sh:77,     ccy:"USD",cost:3357, div:252,sec:"Staples"},
+    {name:"Bayer AG",                 t:"BAYN.DE", sh:114,    ccy:"EUR",cost:4378, div:109,sec:"Health"},
+    {name:"Linde PLC",                t:"LIN",     sh:10,     ccy:"USD",cost:3381, div:41, sec:"Ind"},
+    {name:"Allianz SE",               t:"ALV.DE",  sh:11,     ccy:"EUR",cost:2688, div:121,sec:"Fin"},
+    {name:"Caterpillar",              t:"CAT",     sh:6,      ccy:"USD",cost:1718, div:27, sec:"Ind"},
+    {name:"BMW AG",                   t:"BMW.DE",  sh:46,     ccy:"EUR",cost:3344, div:150,sec:"Auto"},
+    {name:"Mercedes-Benz",            t:"MBG.DE",  sh:61,     ccy:"EUR",cost:2800, div:182,sec:"Auto"},
+    {name:"BlackRock Inc.",           t:"BLK",     sh:4,      ccy:"USD",cost:2437, div:68, sec:"Fin"},
+    {name:"Coca-Cola",                t:"KO",      sh:37,     ccy:"USD",cost:2102, div:65, sec:"Staples"},
+    {name:"Procter & Gamble",         t:"PG",      sh:18,     ccy:"USD",cost:2045, div:55, sec:"Staples"},
+    {name:"Rolls-Royce",              t:"RR.L",    sh:185,    ccy:"GBP",cost:1017, div:0,  sec:"Ind"},
+    {name:"Siemens AG",               t:"SIE.DE",  sh:11,     ccy:"EUR",cost:1847, div:52, sec:"Ind"},
+    {name:"Vonovia SE",               t:"VNA.DE",  sh:105,    ccy:"EUR",cost:1945, div:68, sec:"RE"},
+    {name:"Chevron Corp",             t:"CVX",     sh:12,     ccy:"USD",cost:1655, div:70, sec:"Energy"},
+    {name:"NVIDIA",                   t:"NVDA",    sh:10,     ccy:"USD",cost:945,  div:1,  sec:"Tech"},
+    {name:"McDonald's",               t:"MCD",     sh:5,      ccy:"USD",cost:1181, div:32, sec:"Disc"},
+    {name:"RTX Corporation",          t:"RTX",     sh:8,      ccy:"USD",cost:1344, div:32, sec:"Ind"},
+    {name:"Sanofi",                   t:"SAN.PA",  sh:31,     ccy:"EUR",cost:2422, div:97, sec:"Health"},
+    {name:"Adobe Systems",            t:"ADBE",    sh:9,      ccy:"USD",cost:2011, div:0,  sec:"Tech"},
+    {name:"FUTURE PLC",               t:"FUTR.L",  sh:400,    ccy:"GBP",cost:2526, div:0,  sec:"Media"},
+    {name:"Deutsche Bank",            t:"DBK.DE",  sh:45,     ccy:"EUR",cost:1112, div:28, sec:"Fin"},
+    {name:"Bitcoin BTC",              t:"BTC-EUR", sh:0.00547,ccy:"EUR",cost:245,  div:0,  sec:"Crypto"},
+    {name:"Ethereum ETH",             t:"ETH-EUR", sh:0.17,   ccy:"EUR",cost:225,  div:0,  sec:"Crypto"},
+    {name:"BNB",                      t:"BNB-EUR", sh:0.19,   ccy:"EUR",cost:73,   div:0,  sec:"Crypto"},
+  ]
+};
+
+// ════════════════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════════════════
+let S = {}, prices = {}, fx = {USD:0.92, GBP:1.17};
+let cur = 'dash', plYear = 2025;
+
+function load() {
+  try {
+    const raw = localStorage.getItem('fos2');
+    S = raw ? JSON.parse(raw) : deep(DEFAULTS);
+  } catch(e) { S = deep(DEFAULTS); }
+  // Migrate: ensure all keys exist
+  if (!S.targets) S.targets = deep(DEFAULTS.targets);
+  if (!S.projection) S.projection = deep(DEFAULTS.projection);
+  [2022,2023,2024,2025,2026].forEach(y => {
+    if (!S.pnl[y]) S.pnl[y] = deep(DEFAULTS.pnl[y]);
+  });
+}
+function save() { localStorage.setItem('fos2', JSON.stringify(S)); }
+function deep(x) { return JSON.parse(JSON.stringify(x)); }
+function resetData() { S = deep(DEFAULTS); prices = {}; save(); renderAll(); toast('Reset ✓'); }
+
+// ════════════════════════════════════════════════════════════════════
+// COMPUTED
+// ════════════════════════════════════════════════════════════════════
+function hv(h) {
+  const px = prices[h.t];
+  if (px != null) {
+    if (h.ccy === 'EUR') return h.sh * px;
+    if (h.ccy === 'USD') return h.sh * px * fx.USD;
+    if (h.ccy === 'GBP') return h.sh * (px / 100) * fx.GBP;
+  }
+  return h.cost * 1.05; // fallback: 5% above cost
+}
+function portVal()    { return S.holdings.reduce((s,h) => s + hv(h), 0); }
+function totalDivs()  { return S.holdings.reduce((s,h) => s + h.div, 0); }
+function totalAssets(){ const b=S.bs; return portVal()+b.apartment+b.cash+b.pension+b.car+b.otherInv+b.invoice; }
+function totalLiab()  { const b=S.bs; return b.mortgage+b.steuern+b.ust+b.parentLoan+b.otherLiab; }
+function netWorth()   { return totalAssets() - totalLiab(); }
+
+// ── Risk/Performance metrics (model estimates, clearly labelled) ──
+function metrics() {
+  const pv = portVal();
+  const cost = S.holdings.reduce((s,h) => s+h.cost, 0);
+  const years = 7.25; // Jan 2019 → Apr 2026
+  const irr = pv > 0 && cost > 0 ? (Math.pow(pv/cost, 1/years) - 1) * 100 : 0;
+  const divYield = pv > 0 ? totalDivs()/pv*100 : 0;
+
+  // Weighted vol estimate: ETF 14%, single stock 25%, crypto 80%
+  const portVol = S.holdings.reduce((s,h) => {
+    const w = hv(h)/pv;
+    const vol = h.sec==='Crypto' ? 80 : ['Passive','ETF','Gold'].includes(h.sec) ? 14 : 25;
+    return s + vol * w;
+  }, 0) * (0.42 + 0.58/Math.sqrt(Math.min(S.holdings.length, 30)));
+
+  const rf = 3.5; // ECB risk-free approx
+  const bench = 11.2; // MSCI World CAGR 2019-2026 approx
+  const sharpe = portVol > 0 ? (irr - rf) / portVol : 0;
+  const beta = 0.87; // estimated for this portfolio composition
+  const treynor = beta > 0 ? (irr - rf) / beta : 0;
+  const alpha = irr - bench;
+  const te = 4.2; // estimated tracking error
+  const ir = te > 0 ? alpha / te : 0;
+
+  // HHI concentration (0–10000; <1000 = diversified)
+  const hhi = pv > 0 ? S.holdings.reduce((s,h) => { const w=hv(h)/pv*100; return s+w*w; }, 0) : 0;
+
+  // Parametric VaR 95% 1-month
+  const var95 = portVol / 100 * pv * 1.645 * Math.sqrt(1/12);
+
+  return { pv, cost, irr, divYield, portVol, sharpe, beta, treynor, alpha, ir, hhi, var95, years };
+}
+
+// ── Bucket allocation ──
+function buckets() {
+  const pv = portVal();
+  return Object.entries(S.targets.buckets).map(([name, cfg]) => {
+    const val = S.holdings.filter(h => cfg.secs.includes(h.sec)).reduce((s,h) => s+hv(h), 0);
+    const act = pv > 0 ? val/pv*100 : 0;
+    const drift = act - cfg.t;
+    const status = Math.abs(drift) <= S.targets.driftWarn ? 'ok'
+                 : Math.abs(drift) <= S.targets.driftWarn*2 ? 'warn' : 'over';
+    return { name, target:cfg.t, act, drift, color:cfg.col, status };
+  });
+}
+
+// ── Sector breakdown ──
+function sectors() {
+  const pv = portVal(), map = {};
+  S.holdings.forEach(h => { map[h.sec] = (map[h.sec]||0) + hv(h); });
+  return Object.entries(map).map(([s,v]) => ({s,v,p:pv>0?v/pv*100:0})).sort((a,b)=>b.v-a.v);
+}
+
+// ── Geography ──
+function geos() {
+  const pv = portVal(), map = {};
+  S.holdings.forEach(h => {
+    const v = hv(h);
+    let g = 'Global ETF';
+    if (['IWDA.AS','XDWD.DE','IUSA.DE','ISPA.DE'].includes(h.t)) g='Global ETF';
+    else if (['4GLD.DE'].includes(h.t)) g='Real Asset';
+    else if (h.sec==='Crypto') g='Crypto';
+    else if (h.t.endsWith('.L')) g='UK';
+    else if (h.t.endsWith('.DE')||h.t.endsWith('.PA')||h.t.endsWith('.AS')||h.t==='DBXD.DE') g='Europe';
+    else if (['TSM','SMSN.IL'].includes(h.t)) g='Asia';
+    else g='North America';
+    map[g] = (map[g]||0)+v;
+  });
+  return Object.entries(map).map(([g,v])=>({g,v,p:pv>0?v/pv*100:0})).sort((a,b)=>b.v-a.v);
+}
+
+// ── Warnings ──
+function warnings() {
+  const pv = portVal(), m = metrics(), T = S.targets;
+  const ws = [];
+
+  // Bucket drift
+  buckets().filter(b=>b.status!=='ok').forEach(b=>{
+    const sev = b.status==='over'?'r':'a';
+    ws.push({s:sev, msg:`${b.name}: ${b.act.toFixed(1)}% actual vs ${b.target}% target (${b.drift>0?'+':''}${b.drift.toFixed(1)}% drift)`});
+  });
+
+  // HHI
+  if (m.hhi > 1500) ws.push({s:'r',msg:`High concentration — HHI ${Math.round(m.hhi)} (>1500). Consider diversifying further.`});
+  else if (m.hhi > 1000) ws.push({s:'a',msg:`Moderate concentration — HHI ${Math.round(m.hhi)}. Monitor single-name risk.`});
+
+  // Max position
+  const sorted = [...S.holdings].map(h=>({...h,v:hv(h)})).sort((a,b)=>b.v-a.v);
+  if (sorted.length && sorted[0].v/pv*100 > T.maxPos) {
+    ws.push({s:'a',msg:`${sorted[0].name} is ${(sorted[0].v/pv*100).toFixed(1)}% — above ${T.maxPos}% single-position cap.`});
+  }
+
+  // Div yield
+  if (m.divYield < T.minDivYield) {
+    ws.push({s:'a',msg:`Dividend yield ${m.divYield.toFixed(1)}% — below ${T.minDivYield}% target. Build income names.`});
+  }
+
+  // Crypto
+  const cryptoW = S.holdings.filter(h=>h.sec==='Crypto').reduce((s,h)=>s+hv(h),0)/pv*100;
+  if (cryptoW > 2) ws.push({s:'r',msg:`Crypto is ${cryptoW.toFixed(1)}% of portfolio — inconsistent with value mandate.`});
+
+  // Underwater positions >25%
+  S.holdings.forEach(h => {
+    if (hv(h) < h.cost * 0.75) {
+      ws.push({s:'a',msg:`${h.name} down ${((1-hv(h)/h.cost)*100).toFixed(0)}% — review thesis or crystallise loss.`});
+    }
+  });
+
+  if (ws.length === 0) ws.push({s:'g',msg:'No critical alerts. Portfolio within acceptable parameters.'});
+  return ws;
+}
+
+// ── Holding flags ──
+function flags(h, pv) {
+  const v = hv(h), wt = pv>0?v/pv*100:0;
+  const fl = [];
+  if (wt > S.targets.maxPos)   fl.push({c:'flag-r',l:`OVERWEIGHT`});
+  if (v < h.cost*0.75)         fl.push({c:'flag-r',l:`−${((1-v/h.cost)*100).toFixed(0)}%`});
+  else if (v > h.cost*2)       fl.push({c:'flag-g',l:`×${(v/h.cost).toFixed(1)}`});
+  if (h.sec==='Crypto')        fl.push({c:'flag-a',l:'SPECULATIVE'});
+  if (h.div>0 && v>0 && h.div/v*100>6) fl.push({c:'flag-b',l:`${(h.div/v*100).toFixed(1)}% YOC`});
+  if (h.div===0 && !['Passive','ETF','Gold','Crypto'].includes(h.sec)) fl.push({c:'flag-a',l:'NO DIV'});
+  return fl;
+}
+
+// ════════════════════════════════════════════════════════════════════
+// FORMAT
+// ════════════════════════════════════════════════════════════════════
+const F = {
+  e: v => '€' + Math.round(v).toLocaleString('de-DE'),
+  k: v => v>=1e6 ? '€'+(v/1e6).toFixed(2)+'M' : v>=1000 ? '€'+(v/1000).toFixed(1)+'k' : '€'+Math.round(v),
+  p: v => (v>=0?'+':'')+v.toFixed(1)+'%',
+  p0:v => v.toFixed(1)+'%',
+  n2:v => v.toFixed(2),
+};
+const cc = v => v>0?'pos':v<0?'neg':'neu';
+
+// ════════════════════════════════════════════════════════════════════
+// PRICE FETCH
+// ════════════════════════════════════════════════════════════════════
+async function refreshPrices() {
+  const btn = document.getElementById('refresh-btn');
+  btn.textContent = '⟳ …'; btn.disabled = true;
+  setH('price-status','<span class="live-dot" style="background:var(--amber)"></span> Fetching…');
+  try {
+    // FX
+    try {
+      const r = await fetch('https://api.exchangerate-api.com/v4/latest/EUR');
+      const d = await r.json();
+      fx.USD = 1/d.rates.USD; fx.GBP = 1/d.rates.GBP;
+    } catch(e){}
+
+    const tickers = [...new Set(S.holdings.map(h=>h.t))];
+    let ok = 0;
+    await Promise.allSettled(tickers.map(async t => {
+      try {
+        const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(t)}?interval=1d&range=1d`;
+        const r = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+                              {signal:AbortSignal.timeout(8000)});
+        const d = await r.json();
+        prices[t] = JSON.parse(d.contents).chart.result[0].meta.regularMarketPrice;
+        ok++;
+      } catch(e){}
+    }));
+
+    S.bs.portfolio = Math.round(portVal());
+    save();
+    const t = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    setH('price-status',`<span class="live-dot"></span> ${t} — ${ok}/${tickers.length}`);
+    renderAll();
+  } catch(e) {
+    setH('price-status','<span class="live-dot" style="background:var(--red)"></span> Offline');
+  }
+  btn.textContent = '⟳ Prices'; btn.disabled = false;
+}
+
+// ════════════════════════════════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════════════════════════════════
+function nav(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('on'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('on'));
+  document.getElementById('screen-'+id).classList.add('on');
+  document.getElementById('nav-'+id).classList.add('on');
+  cur = id;
+  document.querySelector('.content').scrollTop = 0;
+  const renders = {port:renderPort, anlx:renderAnlx, pnl:renderPnl, debt:renderDebt, set:renderSet, hist:renderHist};
+  if (renders[id]) renders[id]();
+}
+
+// ════════════════════════════════════════════════════════════════════
+// RENDER — OVERVIEW
+// ════════════════════════════════════════════════════════════════════
+function renderDash() {
+  const pv=portVal(), cost=S.holdings.reduce((s,h)=>s+h.cost,0), nw=netWorth();
+  const gain=pv-cost, divs=totalDivs(), assets=totalAssets(), liab=totalLiab();
+
+  set('d-nw', F.k(nw));
+  set('d-nw-sub', `Assets ${F.k(assets)} — Liab ${F.k(liab)}`);
+  set('d-pv', F.k(pv));
+  setH('d-pv-d',`<span class="${cc(gain)}">${F.p(gain/cost*100)} · ${gain>=0?'+':''}${F.k(gain)}</span>`);
+  set('d-div', F.e(divs));
+  set('d-div-y', F.p0(divs/pv*100)+' portfolio yield');
+  set('d-mort', F.k(S.bs.mortgage));
+  set('d-liab', F.k(liab));
+  set('d-liab-sub', 'Debt/Asset '+F.p0(liab/assets*100));
+
+  // Alerts (top 3)
+  const ws = warnings().slice(0,4);
+  setH('d-alerts', ws.map(w=>`
+    <div class="warn warn-${w.s}">
+      <span class="warn-icon">${w.s==='r'?'⚠':w.s==='a'?'◈':'✓'}</span>
+      <span>${w.msg}</span>
+    </div>`).join(''));
+
+  // Top 5
+  const top5 = [...S.holdings].map((h,i)=>({...h,i,v:hv(h)})).sort((a,b)=>b.v-a.v).slice(0,5);
+  setH('d-top5', top5.map(h=>{
+    const g=(h.v-h.cost)/h.cost*100;
+    return `<div class="row" onclick="nav('port')">
+      <div class="row-ic">${h.sec.slice(0,3)}</div>
+      <div class="row-b"><div class="row-t">${h.name}</div>
+        <div class="row-s">${F.p0(h.v/pv*100)} weight</div></div>
+      <div class="row-r"><div class="row-v">${F.k(h.v)}</div>
+        <div class="row-p ${cc(g)}">${F.p(g)}</div></div>
+    </div>`;
+  }).join(''));
+
+  // Mini projection bars
+  const proj = calcProj();
+  const maxNW = Math.max(...proj.map(d=>d.nw));
+  setH('d-proj-bars', proj.map((d,i)=>`
+    <div class="proj-col">
+      <div class="proj-bar ${i?'f':'c'}" style="height:${Math.round(d.nw/maxNW*100)}%"></div>
+    </div>`).join(''));
+  setH('d-proj-lbls', proj.map(d=>`
+    <div style="flex:1;text-align:center;font-size:9px;color:var(--muted);font-variant-numeric:tabular-nums">
+      ${d.yr}<br><span style="color:var(--text)">${F.k(d.nw)}</span>
+    </div>`).join(''));
+}
+
+// ════════════════════════════════════════════════════════════════════
+// RENDER — PORTFOLIO
+// ════════════════════════════════════════════════════════════════════
+function renderPort() {
+  const pv=portVal(), cost=S.holdings.reduce((s,h)=>s+h.cost,0), divs=totalDivs();
+  const gain=pv-cost;
+  setH('port-summary', `
+    <div class="mini-card">
+      <div class="ml">Value</div>
+      <div class="mv">${F.k(pv)}</div>
+    </div>
+    <div class="mini-card">
+      <div class="ml">Gain</div>
+      <div class="mv ${cc(gain)}">${F.p(gain/cost*100)}</div>
+    </div>
+    <div class="mini-card">
+      <div class="ml">Divs/yr</div>
+      <div class="mv">${F.k(divs)}</div>
+    </div>`);
+
+  const IC = {Tech:'TEC',Energy:'NRG',Passive:'IDX',Fin:'FIN',Health:'MED',Ind:'IND',
+    Staples:'STP',ETF:'DIV',Gold:'GLD',Auto:'AUT',RE:'RE',Disc:'DIS',Media:'MED',Crypto:'₿',Other:'OTH'};
+  const sorted = [...S.holdings].map((h,i)=>({...h,i,v:hv(h)})).sort((a,b)=>b.v-a.v);
+  setH('port-list', sorted.map(h=>{
+    const g=(h.v-h.cost)/h.cost*100;
+    const fl = flags(h, pv);
+    return `<div class="row" onclick="openModal('editHolding',${h.i})">
+      <div class="row-ic">${IC[h.sec]||'OTH'}</div>
+      <div class="row-b">
+        <div class="row-t">${h.name}</div>
+        <div class="row-s">${h.t} · ${F.p0(h.v/pv*100)} · €${h.div}/yr</div>
+        ${fl.length?`<div class="flags">${fl.map(f=>`<span class="flag ${f.c}">${f.l}</span>`).join('')}</div>`:''}
+      </div>
+      <div class="row-r">
+        <div class="row-v">${F.k(h.v)}</div>
+        <div class="row-p ${cc(g)}">${F.p(g)}</div>
+      </div>
+    </div>`;
+  }).join(''));
+}
+
+// ════════════════════════════════════════════════════════════════════
+// RENDER — ANALYTICS
+// ════════════════════════════════════════════════════════════════════
+function renderAnlx() {
+  const m = metrics(), pv = portVal();
+
+  // Warnings (all)
+  const ws = warnings();
+  setH('anlx-warns', ws.map(w=>`
+    <div class="warn warn-${w.s}">
+      <span class="warn-icon">${w.s==='r'?'⚠':w.s==='a'?'◈':'✓'}</span>
+      <span>${w.msg}</span>
+    </div>`).join(''));
+
+  // Performance (with honest labels)
+  setH('anlx-perf', `
+    <div class="mini-card">
+      <div class="ml">IRR (CAGR)</div>
+      <div class="mv pos">${m.irr.toFixed(2)}%</div>
+      <div class="ms">since Jan 2019</div>
+    </div>
+    <div class="mini-card">
+      <div class="ml">Total Return</div>
+      <div class="mv pos">${F.p((m.pv/m.cost-1)*100)}</div>
+      <div class="ms">vs cost basis</div>
+    </div>
+    <div class="mini-card">
+      <div class="ml">Alpha</div>
+      <div class="mv ${cc(m.alpha)}">${m.alpha>=0?'+':''}${m.alpha.toFixed(1)}%</div>
+      <div class="ms">vs MSCI World</div>
+    </div>
+    <div class="mini-card">
+      <div class="ml">Sharpe ~</div>
+      <div class="mv ${m.sharpe>=1?'pos':m.sharpe>=0.5?'gold':''}">${m.sharpe.toFixed(2)}</div>
+      <div class="ms">&gt;1 = excellent</div>
+    </div>
+    <div class="mini-card">
+      <div class="ml">Info Ratio ~</div>
+      <div class="mv ${m.ir>=0.5?'pos':''}">${m.ir.toFixed(2)}</div>
+      <div class="ms">&gt;0.5 = good α</div>
+    </div>
+    <div class="mini-card">
+      <div class="ml">Treynor ~</div>
+      <div class="mv">${m.treynor.toFixed(1)}%</div>
+      <div class="ms">return per β</div>
+    </div>`);
+
+  // Risk
+  const var95pct = pv>0 ? m.var95/pv*100 : 0;
+  setH('anlx-risk', `
+    <div class="mini-card">
+      <div class="ml">Port. Vol ~</div>
+      <div class="mv ${m.portVol>20?'neg':''}">${m.portVol.toFixed(1)}%</div>
+      <div class="ms">est. annual σ</div>
+    </div>
+    <div class="mini-card">
+      <div class="ml">Beta ~</div>
+      <div class="mv">${m.beta.toFixed(2)}</div>
+      <div class="ms">vs MSCI World</div>
+    </div>
+    <div class="mini-card">
+      <div class="ml">VaR 95% (1M) ~</div>
+      <div class="mv neg">−${var95pct.toFixed(1)}%</div>
+      <div class="ms">${F.k(m.var95)}</div>
+    </div>
+    <div class="mini-card">
+      <div class="ml">HHI (Conc.)</div>
+      <div class="mv ${m.hhi>1500?'neg':m.hhi>1000?'gold':'pos'}">${Math.round(m.hhi)}</div>
+      <div class="ms">&lt;1000 = diverse</div>
+    </div>
+    <div class="mini-card">
+      <div class="ml">Div Yield</div>
+      <div class="mv ${m.divYield>=S.targets.minDivYield?'pos':'neg'}">${m.divYield.toFixed(1)}%</div>
+      <div class="ms">target ${S.targets.minDivYield}%+</div>
+    </div>
+    <div class="mini-card">
+      <div class="ml">Holdings</div>
+      <div class="mv">${S.holdings.length}</div>
+      <div class="ms">positions</div>
+    </div>`);
+
+  // Bucket drift bars
+  const bkts = buckets();
+  setH('anlx-buckets', bkts.map(b=>{
+    const dc = b.status==='ok'?'var(--green)':b.status==='warn'?'var(--amber)':'var(--red)';
+    const tgtPx = Math.min(b.target, 100);
+    return `<div class="drift-row">
+      <div class="drift-lbl">${b.name}</div>
+      <div class="drift-track">
+        <div class="drift-tgt" style="left:${tgtPx}%"></div>
+        <div class="drift-fill ${b.status}" style="width:${Math.min(b.act,100)}%"></div>
+      </div>
+      <div class="drift-nums">${b.act.toFixed(1)}% / ${b.target}%</div>
+      <div class="drift-delta" style="color:${dc}">${b.drift>0?'+':''}${b.drift.toFixed(1)}%</div>
+    </div>`;
+  }).join(''));
+
+  // Sectors
+  const secs = sectors();
+  const maxSec = secs[0]?.p || 1;
+  setH('anlx-sectors', secs.map(s=>{
+    const high = s.p > 20;
+    return `<div class="hbar-row">
+      <div class="hbar-lbl">${s.s}</div>
+      <div class="hbar-track">
+        <div class="hbar-fill" style="width:${s.p/maxSec*100}%;background:${high?'var(--amber)':'var(--blue)'}"></div>
+      </div>
+      <div class="hbar-val">${s.p.toFixed(1)}%</div>
+      ${high?`<span class="hbar-badge" style="background:rgba(245,158,11,.12);color:var(--amber)">HIGH</span>`:''}
+    </div>`;
+  }).join(''));
+
+  // Geo
+  const gs = geos();
+  const maxGeo = gs[0]?.p || 1;
+  setH('anlx-geo', gs.map(g=>{
+    const high = g.p > 40;
+    return `<div class="hbar-row">
+      <div class="hbar-lbl">${g.g}</div>
+      <div class="hbar-track">
+        <div class="hbar-fill" style="width:${g.p/maxGeo*100}%;background:${high?'var(--amber)':'var(--purple)'}"></div>
+      </div>
+      <div class="hbar-val">${g.p.toFixed(1)}%</div>
+      ${high?`<span class="hbar-badge" style="background:rgba(245,158,11,.12);color:var(--amber)">CONC.</span>`:''}
+    </div>`;
+  }).join(''));
+}
+
+// ════════════════════════════════════════════════════════════════════
+// RENDER — P&L
+// ════════════════════════════════════════════════════════════════════
+function renderPnl() {
+  const yrs = [2022,2023,2024,2025,2026];
+  setH('yr-tabs', yrs.map(y=>
+    `<button class="yr-tab ${y===plYear?'on':''}" onclick="plYear=${y};renderPnl()">${y}</button>`
+  ).join(''));
+  const d = S.pnl[plYear] || {};
+  const inc = (d.freelance||0)+(d.rental||0)+(d.teresa||0)+(d.dividends||0)+(d.other||0);
+  const exp = (d.pkv||0)+(d.mortgage||0)+(d.weg||0)+(d.tax||0)+(d.living||0)+(d.betrieb||0)+(d.invest||0);
+  const sur = inc - exp;
+  setH('pnl-body',`
+    <div class="pl-sec">Income
+      <span class="act" onclick="openModal('editPnl',${plYear})">edit →</span></div>
+    ${[['Freelance (Umsatz)',d.freelance],['Rental income',d.rental],['Teresa income',d.teresa],
+       ['Dividends',d.dividends],['Other',d.other]].map(([l,v])=>
+      `<div class="pl-row"><span class="lb">${l}</span><span>${F.e(v||0)}</span></div>`).join('')}
+    <div class="pl-row tot"><span class="lb dk">Total Income</span><span>${F.e(inc)}</span></div>
+    <div class="pl-sec" style="margin-top:4px">Expenses</div>
+    ${[['Private KV',d.pkv],['Mortgage',d.mortgage],['WEG Hausgeld',d.weg],['Einkommensteuer',d.tax],
+       ['Living expenses',d.living],['Betriebsausgaben',d.betrieb],['New investment',d.invest]].map(([l,v])=>
+      `<div class="pl-row"><span class="lb">${l}</span><span class="neg">−${F.e(v||0)}</span></div>`).join('')}
+    <div class="pl-row tot"><span class="lb dk">Total Expenses</span><span class="neg">−${F.e(exp)}</span></div>
+    <div class="pl-row sur"><span>Net Surplus</span>
+      <span class="${cc(sur)}">${sur>=0?'+':''}${F.e(sur)}</span></div>`);
+}
+
+// ════════════════════════════════════════════════════════════════════
+// RENDER — DEBT
+// ════════════════════════════════════════════════════════════════════
+function renderDebt() {
+  const m = S.mortgage, r = m.rate/12;
+  let bal = m.original, tInt = 0;
+  for (let i=0; i<m.elapsed; i++) {
+    const int = bal*r; tInt += int;
+    bal = Math.max(bal-(m.payment-int), 0);
+  }
+  S.bs.mortgage = Math.round(bal); save();
+  const pct = (m.original-bal)/m.original*100;
+
+  setH('debt-summary',`
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);
+      font-variant-numeric:tabular-nums;margin-bottom:2px">
+      <span>Paid: ${F.e(m.original-bal)}</span><span>Remaining: ${F.e(bal)}</span>
+    </div>
+    <div class="debt-bar">
+      <div class="debt-pd" style="width:${pct.toFixed(1)}%">${pct.toFixed(0)}%</div>
+      <div class="debt-lf">${(100-pct).toFixed(0)}%</div>
+    </div>
+    <div class="debt-stats">
+      <div class="dst"><div class="dl">Monthly payment</div><div class="dv">${F.e(m.payment)}</div></div>
+      <div class="dst"><div class="dl">Interest rate</div><div class="dv">${(m.rate*100).toFixed(2)}%</div></div>
+      <div class="dst"><div class="dl">Interest this month</div><div class="dv">${F.e(bal*r)}</div></div>
+      <div class="dst"><div class="dl">Principal this month</div><div class="dv">${F.e(m.payment-bal*r)}</div></div>
+      <div class="dst"><div class="dl">Total interest paid</div><div class="dv">${F.e(tInt)}</div></div>
+      <div class="dst"><div class="dl">Estimated payoff</div><div class="dv">Dec 2052</div></div>
+    </div>`);
+
+  const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  let rows = '<thead><tr><th>Date</th><th>Payment</th><th>Interest</th><th>Principal</th><th>Balance</th></tr></thead><tbody>';
+  let b = m.original;
+  for (let i=1; i<=380; i++) {
+    const int=b*r, prin=m.payment-int; b=Math.max(b-prin,0);
+    const mo=(m.startMonthIdx+i-1)%12, yr=m.startYear+Math.floor((m.startMonthIdx+i-1)/12);
+    const isCur = i===m.elapsed;
+    if (i<=72 || i%12===0 || isCur)
+      rows += `<tr class="${isCur?'cur':''}"><td>${MO[mo]} ${yr}</td><td>${F.e(m.payment)}</td>
+        <td>${F.e(int)}</td><td>${F.e(prin)}</td><td>${F.e(b)}</td></tr>`;
+    if (b<=0) break;
+  }
+  setH('sched-tbl', rows+'</tbody>');
+  setTimeout(()=>{ const c=document.querySelector('.sched .cur'); if(c) c.scrollIntoView({block:'center',behavior:'smooth'}); },150);
+}
+
+// ════════════════════════════════════════════════════════════════════
+// RENDER — SETTINGS
+// ════════════════════════════════════════════════════════════════════
+function renderSet() {
+  const b = S.bs, m = S.mortgage, T = S.targets;
+  setH('set-bs', [
+    ['Apartment (60% share)','apartment'],['Cash','cash'],['Pension/bAV','pension'],
+    ['Car','car'],['Other investments','otherInv'],['Outstanding invoice','invoice'],
+    ['Steuerschulden','steuern'],['Umsatzsteuer','ust'],['Parent loan','parentLoan'],['Other liab','otherLiab']
+  ].map(([l,k])=>`<div class="set-row" onclick="openModal('editBSField','${k}','${l}')">
+    <span class="set-lbl">${l}</span><span class="set-val">${F.e(b[k])}</span>
+    <span class="set-arr">›</span></div>`).join(''));
+
+  setH('set-mort', [
+    ['Original principal',F.e(m.original),'original'],
+    ['Interest rate',(m.rate*100).toFixed(2)+'%','rate'],
+    ['Monthly payment',F.e(m.payment),'payment'],
+    ['Months elapsed',m.elapsed+' mo','elapsed']
+  ].map(([l,v,k])=>`<div class="set-row" onclick="openModal('editMortField','${k}','${l}')">
+    <span class="set-lbl">${l}</span><span class="set-val">${v}</span>
+    <span class="set-arr">›</span></div>`).join(''));
+
+  setH('set-targets', [
+    ['Drift alert threshold',T.driftWarn+'%','driftWarn'],
+    ['Max single position',T.maxPos+'%','maxPos'],
+    ['Min dividend yield target',T.minDivYield+'%','minDivYield'],
+  ].map(([l,v,k])=>`<div class="set-row" onclick="openModal('editTargetField','${k}','${l}')">
+    <span class="set-lbl">${l}</span><span class="set-val">${v}</span>
+    <span class="set-arr">›</span></div>`).join('') +
+  Object.entries(T.buckets).map(([name,cfg])=>
+    `<div class="set-row" onclick="openModal('editBucket','${name}')">
+      <span class="set-lbl">${name}</span><span class="set-val">${cfg.t}% target</span>
+      <span class="set-arr">›</span></div>`).join(''));
+}
+
+// ════════════════════════════════════════════════════════════════════
+// PROJECTION
+// ════════════════════════════════════════════════════════════════════
+function calcProj() {
+  const p = S.projection;
+  let pv=portVal(), apt=S.bs.apartment, mort=S.bs.mortgage;
+  return [2026,2027,2028,2029,2030].map((yr,i)=>{
+    const inc = p.monthlyRev*12*Math.pow(1+p.revGrowth/100,i) + p.rental*12 + p.teresaMonthly*12;
+    const exp = p.monthlyExp*12*Math.pow(1.02,i) + 8148*Math.pow(1.03,i) + 8400;
+    pv  = pv*(1+p.portReturn/100) + p.newCapital;
+    apt = apt*(1+p.propGrowth/100);
+    mort = Math.max(mort - mort*S.mortgage.rate, 0);
+    const nw = pv + (apt-mort) + S.bs.cash;
+    return {yr, inc, exp, sur:inc-exp, pv, nw};
+  });
+}
+
+// ════════════════════════════════════════════════════════════════════
+// VALUE SCREENER
+// ════════════════════════════════════════════════════════════════════
+function runScreener(params) {
+  const {name,tick,ccy,pe,pb,dy,pr,roe,de,rg,moat,earn,divt,sec,mc} = params;
+  const pv = portVal();
+
+  const CRITERIA = [
+    {l:'Valuation (P/E)', w:15,
+     eval:()=>pe>0&&pe<=20?'p':pe>0&&pe<=30?'w':'f',
+     desc:()=>pe<=20?`P/E ${pe} — attractively valued. Below Graham's threshold of ~15.`
+              :pe<=30?`P/E ${pe} — fair for quality. Buffett pays up to 20× for exceptional businesses.`
+              :`P/E ${pe} — expensive. Requires exceptional growth to justify; limited margin of safety.`},
+    {l:'Price-to-Book', w:10,
+     eval:()=>pb>0&&pb<=3?'p':pb>0&&pb<=5?'w':'f',
+     desc:()=>pb<=1.5?`P/B ${pb} — trading near asset value. Classic Graham deep value signal.`
+              :pb<=3?`P/B ${pb} — reasonable for a franchise with significant intangible assets.`
+              :pb<=5?`P/B ${pb} — elevated. Only justified by high, sustained ROE.`
+              :`P/B ${pb} — very expensive on assets. Reserved for truly exceptional compounders.`},
+    {l:'Dividend Yield', w:15,
+     eval:()=>dy>=3?'p':dy>=1.5?'w':'f',
+     desc:()=>dy>=4?`${dy}% yield — strong income. Verify FCF coverage and payout sustainability.`
+              :dy>=3?`${dy}% yield — meets your 3%+ income target.`
+              :dy>=1.5?`${dy}% yield — modest. Acceptable if dividend growth is strong.`
+              :`${dy}% yield — insufficient for your income objective.`},
+    {l:'Payout Ratio', w:10,
+     eval:()=>pr>0&&pr<=60?'p':pr>0&&pr<=80?'w':'f',
+     desc:()=>pr<=50?`Payout ${pr}% — safe with room to grow.`
+              :pr<=60?`Payout ${pr}% — sustainable with moderate headroom.`
+              :pr<=80?`Payout ${pr}% — elevated. One missed quarter could trigger a cut.`
+              :`Payout ${pr}% — dangerously high. Dividend at risk of reduction.`},
+    {l:'Return on Equity', w:12,
+     eval:()=>roe>=15?'p':roe>=10?'w':'f',
+     desc:()=>roe>=20?`ROE ${roe}% — exceptional. Signals a wide-moat business with pricing power.`
+              :roe>=15?`ROE ${roe}% — good capital efficiency. Consistent with a quality compounder.`
+              :roe>=10?`ROE ${roe}% — acceptable. Question why returns aren't higher.`
+              :`ROE ${roe}% — poor. Capital is not being deployed effectively.`},
+    {l:'Financial Leverage', w:10,
+     eval:()=>de<=1?'p':de<=2?'w':'f',
+     desc:()=>de<=0.5?`D/E ${de} — fortress balance sheet.`
+              :de<=1?`D/E ${de} — conservative. Safe for most sectors.`
+              :de<=2?`D/E ${de} — moderate. Acceptable for asset-heavy businesses.`
+              :`D/E ${de} — high leverage. Vulnerable in a downturn.`},
+    {l:'Competitive Moat', w:14,
+     eval:()=>moat==='wide'?'p':moat==='narrow'?'w':'f',
+     desc:()=>moat==='wide'?'Wide moat — durable pricing power protects returns on capital over 10+ years.'
+              :moat==='narrow'?'Narrow moat — some advantage but monitor competitive dynamics closely.'
+              :'No moat — at risk of margin compression. Only compelling at a deep discount to intrinsic value.'},
+    {l:'Earnings Consistency', w:10,
+     eval:()=>earn==='consistent'?'p':earn==='cyclical'?'w':'f',
+     desc:()=>earn==='consistent'?'Consistent earnings — predictable cash flows enable reliable DCF valuation.'
+              :earn==='cyclical'?'Cyclical — buy at trough earnings, not peak. P/E will look cheap at the wrong time.'
+              :'Negative earnings — no margin of safety framework applies. Speculative.'},
+    {l:'Dividend Track Record', w:14,
+     eval:()=>divt==='aristocrat'?'p':divt==='payer'?'w':'f',
+     desc:()=>divt==='aristocrat'?'Dividend Aristocrat — management commitment demonstrated over 10+ years.'
+              :divt==='payer'?'Consistent payer — reasonable track record. Watch for cuts or recent initiations.'
+              :divt==='new'?'New payer — insufficient track record. Wait 5 years minimum before relying on income.'
+              :'No dividend — incompatible with income objective unless Berkshire-style capital allocation.'},
+  ];
+
+  const results = CRITERIA.map(c=>({...c, res:c.eval(), desc:c.desc()}));
+  const totalW = results.reduce((s,c)=>s+c.w, 0);
+  const score  = results.reduce((s,c)=>s+(c.res==='p'?c.w:c.res==='w'?c.w*0.5:0), 0) / totalW * 100;
+
+  // Position sizing
+  const n = S.holdings.length;
+  const baseWt = 100/(n+1);
+  const adjWt  = score>=80?baseWt*1.3:score>=65?baseWt:score>=50?baseWt*0.6:baseWt*0.25;
+  const capWt  = Math.min(adjWt, S.targets.maxPos);
+  const recEur = capWt/100 * pv;
+
+  // Sector check
+  const secNow = S.holdings.filter(h=>h.sec===sec).reduce((s,h)=>s+hv(h),0)/pv*100;
+  const secAfter = secNow + capWt;
+  const secWarn  = secAfter>25 ? `Adding would bring ${sec} to ${secAfter.toFixed(1)}% — above 25% sector limit.` : '';
+
+  const verdict = score>=75?'STRONG FIT':score>=60?'CONDITIONAL':score>=45?'WEAK FIT':score>=30?'POOR FIT':'REJECT';
+  const vc = score>=75?'var(--green)':score>=60?'var(--gold)':score>=45?'var(--amber)':'var(--red)';
+
+  const html = `
+    <div style="text-align:center;padding:16px 0 12px">
+      <div class="sc-score" style="border-color:${vc}">
+        <div class="sv" style="color:${vc}">${Math.round(score)}</div>
+        <div class="sl">/ 100</div>
+      </div>
+      <div style="font-size:14px;font-weight:700;color:${vc};margin-bottom:4px">${verdict}</div>
+      <div style="font-size:11px;color:var(--muted)">${name} · ${tick}</div>
+    </div>
+    <div style="border-top:1px solid var(--border);padding-top:10px">
+      ${results.map(c=>`
+        <div class="chk">
+          <div class="chk-dot ${c.res}">${c.res==='p'?'✓':c.res==='w'?'~':'✗'}</div>
+          <div><div class="chk-t">${c.l}</div><div class="chk-d">${c.desc}</div></div>
+        </div>`).join('')}
+    </div>
+    <div class="size-box">
+      <div style="font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);
+        font-weight:600;margin-bottom:10px">Position Sizing Recommendation</div>
+      <div class="size-row"><span style="color:var(--muted)">Portfolio value</span><span>${F.k(pv)}</span></div>
+      <div class="size-row"><span style="color:var(--muted)">Equal-weight baseline (1/${n+1})</span><span>${baseWt.toFixed(1)}%</span></div>
+      <div class="size-row"><span style="color:var(--muted)">Quality-adjusted</span><span>${adjWt.toFixed(1)}%</span></div>
+      <div class="size-row"><span style="color:var(--muted)">Capped at ${S.targets.maxPos}% limit</span><span>${capWt.toFixed(1)}%</span></div>
+      <div class="size-row"><span>Recommended position</span><span style="color:var(--gold)">${F.k(recEur)}</span></div>
+    </div>
+    ${secWarn?`<div class="warn warn-a" style="margin:0 0 10px">
+      <span class="warn-icon">◈</span><span>${secWarn}</span></div>`:''}
+    ${score>=60
+      ?`<button class="sbtn" onclick="addFromScreener('${name}','${tick}','${ccy}','${sec}',${Math.round(recEur)})">Add ${name} to Portfolio</button>`
+      :`<button class="dbtn" onclick="addFromScreener('${name}','${tick}','${ccy}','${sec}',${Math.round(recEur)})">Add anyway (below threshold)</button>`}
+    <div class="disc-box">All metrics are based on your manually entered data. Verify against latest financial statements before investing. This is not investment advice.</div>`;
+
+  return html;
+}
+
+function addFromScreener(name,tick,ccy,sec,euros) {
+  openModal('addHolding', {name,tick,ccy,sec,suggestEur:euros});
+}
+
+// ════════════════════════════════════════════════════════════════════
+// MODALS
+// ════════════════════════════════════════════════════════════════════
+function openModal(type, ...args) {
+  document.getElementById('ovl').classList.add('on');
+  const T = id => document.getElementById(id);
+  const title = T('sh-title'), body = T('sh-body');
+
+  // ── Balance sheet bulk edit ─────────────────────────────────
+  if (type === 'editBS') {
+    title.textContent = 'Balance Sheet';
+    body.innerHTML = `<p class="note-box">Portfolio value updates automatically from live prices. Enter all other values manually.</p>` +
+      [['Apartment (60% share)','apartment'],['Cash','cash'],['Pension/bAV','pension'],
+       ['Car','car'],['Other investments','otherInv'],['Outstanding invoice','invoice'],
+       ['Steuerschulden','steuern'],['Umsatzsteuer','ust'],['Parent loan','parentLoan'],
+       ['Other liabilities','otherLiab']].map(([l,k])=>
+        `<div class="fld"><label>${l} (€)</label>
+         <input type="number" id="bs_${k}" value="${S.bs[k]}"></div>`).join('') +
+      `<button class="sbtn" onclick="saveBS()">Save All</button>`;
+  }
+
+  // ── Single BS field ─────────────────────────────────────────
+  else if (type === 'editBSField') {
+    const [key, lbl] = args;
+    title.textContent = lbl;
+    body.innerHTML = `<div class="fld"><label>${lbl} (€)</label>
+      <input type="number" id="bsf_v" value="${S.bs[key]}"></div>
+      <button class="sbtn" onclick="saveBSField('${key}')">Save</button>`;
+  }
+
+  // ── Mortgage bulk edit ──────────────────────────────────────
+  else if (type === 'editMort') {
+    const m = S.mortgage;
+    title.textContent = 'Mortgage Settings';
+    body.innerHTML = [['original','Original Principal (€)',m.original],
+      ['rate','Annual Interest Rate (%)',(m.rate*100).toFixed(2)],
+      ['payment','Monthly Payment (€)',m.payment],['elapsed','Months Elapsed',m.elapsed]
+    ].map(([k,l,v])=>`<div class="fld"><label>${l}</label>
+      <input type="number" step="any" id="m_${k}" value="${v}"></div>`).join('') +
+      `<button class="sbtn" onclick="saveMort()">Save</button>`;
+  }
+
+  // ── Single mortgage field ───────────────────────────────────
+  else if (type === 'editMortField') {
+    const [key, lbl] = args;
+    const m = S.mortgage, cur = key==='rate' ? (m.rate*100).toFixed(2) : m[key];
+    title.textContent = lbl;
+    body.innerHTML = `<div class="fld"><label>${lbl}</label>
+      <input type="number" step="any" id="mf_v" value="${cur}"></div>
+      <button class="sbtn" onclick="saveMortField('${key}')">Save</button>`;
+  }
+
+  // ── Single target field ─────────────────────────────────────
+  else if (type === 'editTargetField') {
+    const [key, lbl] = args;
+    title.textContent = lbl;
+    body.innerHTML = `<div class="fld"><label>${lbl}</label>
+      <input type="number" step="0.1" id="tf_v" value="${S.targets[key]}">
+      <div class="hint">Drift warn=${S.targets.driftWarn}% · Max pos=${S.targets.maxPos}% · Min div=${S.targets.minDivYield}%</div>
+      </div><button class="sbtn" onclick="saveTargetField('${key}')">Save</button>`;
+  }
+
+  // ── Bucket target ───────────────────────────────────────────
+  else if (type === 'editBucket') {
+    const name = args[0], cfg = S.targets.buckets[name];
+    title.textContent = name;
+    body.innerHTML = `<div class="fld"><label>Target Weight (%)</label>
+      <input type="number" step="1" id="bk_t" value="${cfg.t}">
+      <div class="hint">Sectors in this bucket: ${cfg.secs.join(', ')}</div></div>
+      <button class="sbtn" onclick="saveBucket('${name}')">Save</button>`;
+  }
+
+  // ── Edit existing holding ───────────────────────────────────
+  else if (type === 'editHolding') {
+    const h = S.holdings[args[0]];
+    title.textContent = h.name;
+    body.innerHTML = `<input type="hidden" id="eh_i" value="${args[0]}">
+      <div class="fld-2">
+        <div class="fld"><label>Shares</label>
+          <input type="number" step="any" id="eh_sh" value="${h.sh}"></div>
+        <div class="fld"><label>Currency</label>
+          <select id="eh_ccy">
+            ${['EUR','USD','GBP'].map(c=>`<option value="${c}"${c===h.ccy?' selected':''}>${c}</option>`).join('')}
+          </select></div>
+      </div>
+      <div class="fld"><label>Cost Basis (€)</label>
+        <input type="number" id="eh_cost" value="${h.cost}"></div>
+      <div class="fld"><label>Annual Dividend (€)</label>
+        <input type="number" id="eh_div" value="${h.div}"></div>
+      <div class="fld"><label>Yahoo Finance Ticker</label>
+        <input type="text" id="eh_t" value="${h.t}">
+        <div class="hint">EUR: ALV.DE · USD: MSFT · GBP (pence): RR.L</div></div>
+      <div class="fld"><label>Sector</label>
+        <select id="eh_sec">
+          ${['Passive','ETF','Gold','Tech','Fin','Health','Ind','Staples','Energy','Auto','RE','Disc','Media','Crypto','Other'].map(s=>
+            `<option value="${s}"${s===h.sec?' selected':''}>${s}</option>`).join('')}
+        </select></div>
+      <button class="sbtn" onclick="saveHolding()">Save</button>
+      <button class="dbtn" onclick="if(confirm('Remove ${h.name.replace(/'/g,"\\'")}?'))deleteHolding(${args[0]})">Remove Holding</button>`;
+  }
+
+  // ── Add holding ─────────────────────────────────────────────
+  else if (type === 'addHolding') {
+    const pre = args[0] || {};
+    title.textContent = 'Add Holding';
+    body.innerHTML = `
+      <div class="fld"><label>Name</label>
+        <input type="text" id="ah_n" value="${pre.name||''}" placeholder="Johnson & Johnson"></div>
+      <div class="fld-2">
+        <div class="fld"><label>Yahoo Ticker</label>
+          <input type="text" id="ah_t" value="${pre.tick||''}" placeholder="JNJ">
+          <div class="hint">Used for live prices</div></div>
+        <div class="fld"><label>Currency</label>
+          <select id="ah_ccy">
+            ${['EUR','USD','GBP'].map(c=>`<option value="${c}"${c===(pre.ccy||'EUR')?' selected':''}>${c}</option>`).join('')}
+          </select></div>
+      </div>
+      <div class="fld-2">
+        <div class="fld"><label>Shares</label>
+          <input type="number" step="any" id="ah_sh" value="0"></div>
+        <div class="fld"><label>Cost Basis (€)</label>
+          <input type="number" id="ah_cost" value="${pre.suggestEur||0}">
+          ${pre.suggestEur?`<div class="hint">Suggested by screener: ${F.k(pre.suggestEur)}</div>`:''}</div>
+      </div>
+      <div class="fld"><label>Annual Dividend (€)</label>
+        <input type="number" id="ah_div" value="0"></div>
+      <div class="fld"><label>Sector</label>
+        <select id="ah_sec">
+          ${['Passive','ETF','Gold','Tech','Fin','Health','Ind','Staples','Energy','Auto','RE','Disc','Media','Crypto','Other'].map(s=>
+            `<option value="${s}"${s===(pre.sec||'Other')?' selected':''}>${s}</option>`).join('')}
+        </select></div>
+      <button class="sbtn" onclick="addHolding()">Add to Portfolio</button>`;
+  }
+
+  // ── Edit P&L year ───────────────────────────────────────────
+  else if (type === 'editPnl') {
+    const yr = args[0], d = S.pnl[yr] || {};
+    title.textContent = 'P&L ' + yr;
+    body.innerHTML = `<input type="hidden" id="pnl_yr" value="${yr}">` +
+      [['freelance','Freelance Revenue'],['rental','Rental Income'],['teresa','Teresa Income'],
+       ['dividends','Dividends'],['other','Other Income'],['pkv','Private KV'],
+       ['mortgage','Mortgage Service'],['weg','WEG Hausgeld'],['tax','Einkommensteuer'],
+       ['living','Living Expenses'],['betrieb','Betriebsausgaben'],['invest','New Capital Invested']
+      ].map(([k,l])=>`<div class="fld"><label>${l} (€)</label>
+        <input type="number" id="pnl_${k}" value="${d[k]||0}"></div>`).join('') +
+      `<button class="sbtn" onclick="savePnl()">Save</button>`;
+  }
+
+  // ── Stock screener ──────────────────────────────────────────
+  else if (type === 'screener') {
+    title.textContent = 'Value Stock Screener';
+    body.innerHTML = `
+      <div class="note-box">Enter the stock's fundamentals. The screener scores it against your value investing criteria and recommends how much to buy.</div>
+      <div class="fld"><label>Company Name</label>
+        <input type="text" id="sc_name" placeholder="Johnson & Johnson"></div>
+      <div class="fld-2">
+        <div class="fld"><label>Ticker</label>
+          <input type="text" id="sc_tick" placeholder="JNJ"></div>
+        <div class="fld"><label>Currency</label>
+          <select id="sc_ccy"><option value="USD">USD</option><option value="EUR">EUR</option><option value="GBP">GBP</option></select></div>
+      </div>
+      <div class="fld-2">
+        <div class="fld"><label>P/E Ratio</label><input type="number" step="0.1" id="sc_pe" placeholder="18"></div>
+        <div class="fld"><label>P/B Ratio</label><input type="number" step="0.1" id="sc_pb" placeholder="3.0"></div>
+        <div class="fld"><label>Dividend Yield %</label><input type="number" step="0.1" id="sc_dy" placeholder="3.5"></div>
+        <div class="fld"><label>Payout Ratio %</label><input type="number" step="0.1" id="sc_pr" placeholder="55"></div>
+        <div class="fld"><label>ROE %</label><input type="number" step="0.1" id="sc_roe" placeholder="18"></div>
+        <div class="fld"><label>Debt / Equity</label><input type="number" step="0.1" id="sc_de" placeholder="0.6"></div>
+        <div class="fld"><label>Rev Growth % (5yr)</label><input type="number" step="0.1" id="sc_rg" placeholder="5"></div>
+        <div class="fld"><label>Market Cap €B</label><input type="number" step="0.1" id="sc_mc" placeholder="50"></div>
+      </div>
+      <div class="fld"><label>Sector</label>
+        <select id="sc_sec">
+          ${['Passive','ETF','Gold','Tech','Fin','Health','Ind','Staples','Energy','Auto','RE','Disc','Media','Crypto','Other'].map(s=>`<option value="${s}">${s}</option>`).join('')}
+        </select></div>
+      <div class="fld"><label>Competitive Moat</label>
+        <select id="sc_moat">
+          <option value="wide">Wide moat (brand / network / cost leadership)</option>
+          <option value="narrow">Narrow moat (some competitive advantage)</option>
+          <option value="none">No moat / commodity business</option>
+        </select></div>
+      <div class="fld"><label>Earnings Consistency</label>
+        <select id="sc_earn">
+          <option value="consistent">Consistent — 5+ years positive earnings</option>
+          <option value="cyclical">Cyclical — varies with economy</option>
+          <option value="negative">Negative / loss-making</option>
+        </select></div>
+      <div class="fld"><label>Dividend Track Record</label>
+        <select id="sc_divt">
+          <option value="aristocrat">Dividend Aristocrat (10+ yr consecutive growth)</option>
+          <option value="payer">Consistent payer (5+ years)</option>
+          <option value="new">New or inconsistent payer</option>
+          <option value="none">No dividend</option>
+        </select></div>
+      <button class="sbtn" onclick="submitScreener()">Run Screener</button>`;
+  }
+}
+
+function submitScreener() {
+  const g = id => document.getElementById(id);
+  const params = {
+    name:g('sc_name').value.trim()||'Stock',
+    tick:g('sc_tick').value.trim()||'TICK',
+    ccy: g('sc_ccy').value,
+    pe:  +g('sc_pe').value||999,
+    pb:  +g('sc_pb').value||999,
+    dy:  +g('sc_dy').value||0,
+    pr:  +g('sc_pr').value||100,
+    roe: +g('sc_roe').value||0,
+    de:  +g('sc_de').value||999,
+    rg:  +g('sc_rg').value||0,
+    mc:  +g('sc_mc').value||0,
+    sec: g('sc_sec').value,
+    moat:g('sc_moat').value,
+    earn:g('sc_earn').value,
+    divt:g('sc_divt').value,
+  };
+  document.getElementById('sh-title').textContent = 'Screener — '+params.name;
+  document.getElementById('sh-body').innerHTML = runScreener(params);
+}
+
+function closeModal() { document.getElementById('ovl').classList.remove('on'); }
+function bgClose(e)   { if (e.target===document.getElementById('ovl')) closeModal(); }
+
+// ════════════════════════════════════════════════════════════════════
+// SAVE HANDLERS
+// ════════════════════════════════════════════════════════════════════
+function saveBS() {
+  ['apartment','cash','pension','car','otherInv','invoice','steuern','ust','parentLoan','otherLiab'].forEach(k=>{
+    const el=document.getElementById('bs_'+k); if(el) S.bs[k]=+el.value;
+  });
+  closeModal(); save(); renderAll(); toast('Saved ✓');
+}
+function saveBSField(k) {
+  S.bs[k] = +document.getElementById('bsf_v').value;
+  closeModal(); save(); renderAll(); toast('Saved ✓');
+}
+function saveMort() {
+  ['original','payment','elapsed'].forEach(k=>{
+    const el=document.getElementById('m_'+k); if(el) S.mortgage[k]=+el.value;
+  });
+  const r=document.getElementById('m_rate'); if(r) S.mortgage.rate=+r.value/100;
+  closeModal(); save(); renderAll(); toast('Saved ✓');
+}
+function saveMortField(k) {
+  if (k==='rate') S.mortgage.rate=+document.getElementById('mf_v').value/100;
+  else S.mortgage[k]=+document.getElementById('mf_v').value;
+  closeModal(); save(); renderAll(); toast('Saved ✓');
+}
+function saveTargetField(k) {
+  S.targets[k] = +document.getElementById('tf_v').value;
+  closeModal(); save(); renderAll(); toast('Saved ✓');
+}
+function saveBucket(name) {
+  S.targets.buckets[name].t = +document.getElementById('bk_t').value;
+  closeModal(); save(); renderAnlx(); toast('Saved ✓');
+}
+function saveHolding() {
+  const i = +document.getElementById('eh_i').value;
+  S.holdings[i].sh   = +document.getElementById('eh_sh').value;
+  S.holdings[i].ccy  = document.getElementById('eh_ccy').value;
+  S.holdings[i].cost = +document.getElementById('eh_cost').value;
+  S.holdings[i].div  = +document.getElementById('eh_div').value;
+  S.holdings[i].t    = document.getElementById('eh_t').value.trim();
+  S.holdings[i].sec  = document.getElementById('eh_sec').value;
+  closeModal(); save(); renderAll(); toast('Saved ✓');
+}
+function deleteHolding(i) {
+  S.holdings.splice(i,1);
+  closeModal(); save(); renderPort(); toast('Removed');
+}
+function addHolding() {
+  const n=document.getElementById('ah_n').value.trim();
+  const t=document.getElementById('ah_t').value.trim();
+  if (!n||!t) { toast('Name and ticker required'); return; }
+  S.holdings.push({
+    name:n, t, sh:+document.getElementById('ah_sh').value,
+    ccy:document.getElementById('ah_ccy').value,
+    cost:+document.getElementById('ah_cost').value,
+    div:+document.getElementById('ah_div').value,
+    sec:document.getElementById('ah_sec').value
+  });
+  closeModal(); save(); renderPort(); toast('Added ✓');
+}
+function savePnl() {
+  const yr=+document.getElementById('pnl_yr').value;
+  ['freelance','rental','teresa','dividends','other','pkv','mortgage','weg','tax','living','betrieb','invest'].forEach(k=>{
+    const el=document.getElementById('pnl_'+k); if(el) S.pnl[yr][k]=+el.value;
+  });
+  closeModal(); save(); renderPnl(); toast('Saved ✓');
+}
+
+// ════════════════════════════════════════════════════════════════════
+// EXPORT / IMPORT
+// ════════════════════════════════════════════════════════════════════
+function exportData() {
+  const blob = new Blob([JSON.stringify(S,null,2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='finance-os-'+new Date().toISOString().slice(0,10)+'.json';
+  a.click(); URL.revokeObjectURL(a.href);
+  toast('Exported ✓');
+}
+function importData() {
+  const inp = document.createElement('input');
+  inp.type='file'; inp.accept='.json';
+  inp.onchange = e => {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try { S=JSON.parse(ev.target.result); save(); renderAll(); toast('Imported ✓'); }
+      catch(e) { toast('Invalid file'); }
+    };
+    reader.readAsText(e.target.files[0]);
+  };
+  inp.click();
+}
+
+// ════════════════════════════════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════════════════════════════════
+function set(id,v)  { const el=document.getElementById(id); if(el) el.textContent=v; }
+function setH(id,h) { const el=document.getElementById(id); if(el) el.innerHTML=h; }
+function toast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('on');
+  setTimeout(()=>t.classList.remove('on'), 2400);
+}
+
+
+// ════════════════════════════════════════════════════════════════════
+// HISTORICAL DATA — Parqet CSV (630 transactions, Jan 2019 – Mar 2026)
+// ════════════════════════════════════════════════════════════════════
+const HIST = {"annual":{"2019":{"invested":9373.03,"withdrawn":190.2,"dividends":54.91,"fees":378.61,"tax":5.8,"realizedGains":34.2,"buys":28,"sells":1},"2020":{"invested":14023.75,"withdrawn":3913.41,"dividends":172.11,"fees":382.73,"tax":26.68,"realizedGains":-652.06,"buys":16,"sells":8},"2021":{"invested":37145.15,"withdrawn":17912.52,"dividends":657.85,"fees":529.48,"tax":1189.99,"realizedGains":2786.51,"buys":28,"sells":12},"2022":{"invested":7059.74,"withdrawn":2596.24,"dividends":1049.95,"fees":145.77,"tax":470.86,"realizedGains":-3208.1,"buys":10,"sells":3},"2023":{"invested":7756.4,"withdrawn":5950.09,"dividends":1546.37,"fees":91.14,"tax":855.96,"realizedGains":4549.24,"buys":5,"sells":3},"2024":{"invested":28175.92,"withdrawn":18713.4,"dividends":1593.06,"fees":0.0,"tax":0.0,"realizedGains":-2196.49,"buys":37,"sells":10},"2025":{"invested":43710.3,"withdrawn":12432.63,"dividends":2213.8,"fees":18.3,"tax":85.74,"realizedGains":-730.11,"buys":52,"sells":8},"2026":{"invested":44054.2,"withdrawn":9259.24,"dividends":329.5,"fees":0.0,"tax":0.0,"realizedGains":1464.47,"buys":19,"sells":6}},"monthly_dividends":{"2019-01":0.35,"2019-04":0.54,"2019-05":4.85,"2019-06":1.8,"2019-07":5.3,"2019-08":14.47,"2019-09":10.2,"2019-10":3.43,"2019-12":13.97,"2020-01":4.42,"2020-03":24.78,"2020-04":3.01,"2020-05":17.07,"2020-06":14.47,"2020-07":4.65,"2020-09":18.87,"2020-10":6.32,"2020-11":48.11,"2020-12":30.41,"2021-01":3.19,"2021-02":3.37,"2021-03":45.86,"2021-04":44.43,"2021-05":302.39,"2021-06":45.94,"2021-07":24.45,"2021-08":24.25,"2021-09":71.93,"2021-10":15.18,"2021-11":3.83,"2021-12":73.03,"2022-01":38.95,"2022-02":42.65,"2022-03":82.7,"2022-04":45.98,"2022-05":395.81,"2022-06":111.48,"2022-07":56.09,"2022-08":51.86,"2022-09":81.78,"2022-10":54.32,"2022-11":19.99,"2022-12":68.34,"2023-01":61.58,"2023-02":59.66,"2023-03":112.27,"2023-04":20.86,"2023-05":753.48,"2023-06":215.22,"2023-07":36.89,"2023-08":29.08,"2023-09":94.38,"2023-10":43.01,"2023-11":23.12,"2023-12":96.82,"2024-01":51.29,"2024-02":38.07,"2024-03":115.36,"2024-04":56.8,"2024-05":744.09,"2024-06":125.23,"2024-07":74.92,"2024-08":42.57,"2024-09":105.04,"2024-10":69.56,"2024-11":65.91,"2024-12":104.22,"2025-01":79.99,"2025-02":114.16,"2025-03":121.87,"2025-04":39.66,"2025-05":785.26,"2025-06":327.99,"2025-07":224.32,"2025-08":50.31,"2025-09":176.85,"2025-10":92.93,"2025-11":57.5,"2025-12":142.96,"2026-01":113.56,"2026-02":120.37,"2026-03":95.57},"all_time":{"invested":191298.49,"withdrawn":70967.73,"netInvested":120330.76,"dividends":7617.55,"fees":1546.03,"tax":2635.03,"realizedGains":2047.66},"div_by_holding":{"Mercedes-Benz":953.8,"Altria Group, Inc.":514.54,"Bristol Myers Squibb":511.23,"BMW":492.68,"Shell":473.38,"Xtrackers MSCI World UCITS ETF - 1D USD DIS":428.92,"Allianz":365.4,"BlackRock":318.95,"Hamborner REIT":318.87,"iShares STOXX Global Select Dividend 100 UCITS ETF (DE) - EUR DIS":311.48,"Mutares":253.5,"Lockheed Martin":219.51,"Carrefour":195.69,"Linde":182.78,"Medtronic":168.28,"Microsoft":167.88,"Vonovia":163.35,"Royal Dutch Shell A (alt)":140.96,"3M":118.45,"Siemens":116.05,"Sanofi":110.19,"SAP":95.25,"Xtrackers Stoxx Global Select Dividend 100 Swap UCITS ETF - 1D EUR DIS":94.3,"Chevron Corp.":79.84,"PepsiCo":74.59,"Coca-Cola":73.77,"Apple":68.94,"Daimler Truck":63.08,"adidas":58.0,"AbbVie":55.89,"Infineon Technologies":46.34,"McDonald's":41.23,"Eckert & Ziegler":40.0,"Procter & Gamble":38.31,"Caterpillar":33.57,"Nextera Energy":33.16,"Deutsche Bank":31.16,"Colgate-Palmolive Co.":30.86,"Unilever":29.09,"Xtrackers DAX Inhaber-Anteile 1D EUR o.N.":24.78,"Rolls-Royce":16.24,"Gazprom (ADR)":14.47,"iShares STOXX Europe 600 Real EstateUCITS ETF (DE) - EUR DIS":8.23,"Taiwan Semiconductor":7.5,"Daiichi Sankyo":7.49,"Pan American Silver":5.96,"BWX Technologies":5.31,"Kongsberg":4.9,"comdirect bank":3.75,"RTX":3.49,"Wirecard":1.8,"NVIDIA":0.36},"recent_tx":[{"date":"30.03.2026","type":"Sell","name":"Xtrackers DAX Inhaber-Anteile ","amount":1370.34,"shares":138.0,"realizedGains":101.58},{"date":"30.03.2026","type":"Dividend","name":"BWX Technologies","amount":2.76,"shares":16.0,"realizedGains":0},{"date":"27.03.2026","type":"Dividend","name":"Linde","amount":9.96,"shares":10.0,"realizedGains":0},{"date":"26.03.2026","type":"Dividend","name":"BlackRock","amount":14.54,"shares":4.0,"realizedGains":0},{"date":"20.03.2026","type":"Dividend","name":"RTX","amount":3.49,"shares":8.0,"realizedGains":0},{"date":"18.03.2026","type":"Dividend","name":"McDonald's","amount":5.95,"shares":5.0,"realizedGains":0},{"date":"17.03.2026","type":"Buy","name":"Adobe Systems","amount":2013.3,"shares":9.0,"realizedGains":0},{"date":"13.03.2026","type":"Dividend","name":"Microsoft","amount":14.47,"shares":25.0,"realizedGains":0},{"date":"11.03.2026","type":"Dividend","name":"Chevron Corp.","amount":13.89,"shares":12.0,"realizedGains":0},{"date":"10.03.2026","type":"Buy","name":"FUTURE","amount":2120.0,"shares":400.0,"realizedGains":0},{"date":"10.03.2026","type":"Buy","name":"Sanofi","amount":765.5,"shares":10.0,"realizedGains":0},{"date":"10.03.2026","type":"Buy","name":"Samsung Electronics (GDR)","amount":2760.0,"shares":1.0,"realizedGains":0},{"date":"10.03.2026","type":"Sell","name":"PepsiCo","amount":2633.4,"shares":19.0,"realizedGains":9.76},{"date":"10.03.2026","type":"Sell","name":"AbbVie","amount":1366.4,"shares":7.0,"realizedGains":266.28},{"date":"09.03.2026","type":"Buy","name":"Mercedes-Benz","amount":538.6,"shares":10.0,"realizedGains":0},{"date":"09.03.2026","type":"Buy","name":"TSMC (ADR)","amount":1156.0,"shares":4.0,"realizedGains":0},{"date":"09.03.2026","type":"Dividend","name":"Xtrackers MSCI World UCITS ETF","amount":30.51,"shares":124.0,"realizedGains":0},{"date":"05.03.2026","type":"Sell","name":"Unilever","amount":940.16,"shares":16.0,"realizedGains":147.29},{"date":"04.03.2026","type":"Buy","name":"Bayer","amount":913.25,"shares":25.0,"realizedGains":0},{"date":"23.02.2026","type":"Buy","name":"iShares Core MSCI World UCITS ","amount":20108.79,"shares":177.0,"realizedGains":0},{"date":"20.02.2026","type":"Dividend","name":"Caterpillar","amount":6.51,"shares":6.0,"realizedGains":0},{"date":"18.02.2026","type":"Dividend","name":"Procter & Gamble","amount":6.8,"shares":18.0,"realizedGains":0},{"date":"18.02.2026","type":"Dividend","name":"AbbVie","amount":8.66,"shares":7.0,"realizedGains":0},{"date":"17.02.2026","type":"Dividend","name":"Siemens","amount":58.85,"shares":11.0,"realizedGains":0},{"date":"13.02.2026","type":"Buy","name":"Fiserv","amount":1487.4,"shares":30.0,"realizedGains":0},{"date":"10.02.2026","type":"Buy","name":"Bayer","amount":922.0,"shares":20.0,"realizedGains":0},{"date":"10.02.2026","type":"Buy","name":"Allianz","amount":755.4,"shares":2.0,"realizedGains":0},{"date":"10.02.2026","type":"Buy","name":"Microsoft","amount":2122.2,"shares":6.0,"realizedGains":0},{"date":"09.02.2026","type":"Sell","name":"Pan American Silver","amount":1871.94,"shares":42.0,"realizedGains":882.28},{"date":"03.02.2026","type":"Dividend","name":"Bristol Myers Squibb","amount":39.55,"shares":88.0,"realizedGains":0},{"date":"27.01.2026","type":"Buy","name":"Procter & Gamble","amount":1141.02,"shares":9.0,"realizedGains":0},{"date":"23.01.2026","type":"Buy","name":"Deckers Outdoor Co.","amount":1042.08,"shares":12.0,"realizedGains":0},{"date":"22.01.2026","type":"Sell","name":"Nextera Energy","amount":1077.0,"shares":15.0,"realizedGains":57.28},{"date":"21.01.2026","type":"Buy","name":"Microsoft","amount":1540.4,"shares":4.0,"realizedGains":0},{"date":"21.01.2026","type":"Buy","name":"Vonovia","amount":1203.5,"shares":50.0,"realizedGains":0},{"date":"20.01.2026","type":"Buy","name":"Bayer","amount":1110.0,"shares":25.0,"realizedGains":0},{"date":"15.01.2026","type":"Dividend","name":"iShares STOXX Global Select Di","amount":27.15,"shares":108.0,"realizedGains":0},{"date":"14.01.2026","type":"Dividend","name":"Taiwan Semiconductor","amount":7.5,"shares":14.0,"realizedGains":0},{"date":"13.01.2026","type":"Buy","name":"RTX","amount":1334.76,"shares":8.0,"realizedGains":0},{"date":"10.01.2026","type":"Dividend","name":"Altria Group, Inc.","amount":59.32,"shares":77.0,"realizedGains":0}],"div_by_holding_top20":{"Mercedes-Benz":953.8,"Altria Group, Inc.":514.54,"Bristol Myers Squibb":511.23,"BMW":492.68,"Shell":473.38,"Xtrackers MSCI World UCITS ETF - 1D USD DIS":428.92,"Allianz":365.4,"BlackRock":318.95,"Hamborner REIT":318.87,"iShares STOXX Global Select Dividend 100 UCITS ETF (DE) - EUR DIS":311.48,"Mutares":253.5,"Lockheed Martin":219.51,"Carrefour":195.69,"Linde":182.78,"Medtronic":168.28,"Microsoft":167.88,"Vonovia":163.35,"Royal Dutch Shell A (alt)":140.96,"3M":118.45,"Siemens":116.05}};
+
+// ════════════════════════════════════════════════════════════════════
+// RENDER — HISTORY
+// ════════════════════════════════════════════════════════════════════
+function renderHist() {
+  const at = HIST.allTime;
+
+  // ── All-time stats ────────────────────────────────────────────────
+  const portNow = portVal();
+  const totalReturn = portNow - at.netInvested + at.dividends - at.fees - at.tax;
+  setH('hist-alltime', `
+    <div class="stat-box">
+      <div class="sl">Capital Deployed</div>
+      <div class="sv">${F.k(at.invested)}</div>
+      <div class="ss">across all buys</div>
+    </div>
+    <div class="stat-box">
+      <div class="sl">Capital Withdrawn</div>
+      <div class="sv">${F.k(at.withdrawn)}</div>
+      <div class="ss">sells + returns</div>
+    </div>
+    <div class="stat-box">
+      <div class="sl">Net Invested</div>
+      <div class="sv">${F.k(at.netInvested)}</div>
+      <div class="ss">deployed − withdrawn</div>
+    </div>
+    <div class="stat-box">
+      <div class="sl">Dividends Received</div>
+      <div class="sv pos">${F.k(at.dividends)}</div>
+      <div class="ss">€7,618 over 7 years</div>
+    </div>
+    <div class="stat-box">
+      <div class="sl">Fees Paid (Deutsche Bank)</div>
+      <div class="sv neg">${F.k(at.fees)}</div>
+      <div class="ss">brokerage commissions</div>
+    </div>
+    <div class="stat-box">
+      <div class="sl">Tax Paid (WHT)</div>
+      <div class="sv neg">${F.k(at.tax)}</div>
+      <div class="ss">withholding tax</div>
+    </div>
+    <div class="stat-box">
+      <div class="sl">Realized Gains</div>
+      <div class="sv ${at.realizedGains>=0?'pos':'neg'}">${at.realizedGains>=0?'+':''}${F.k(at.realizedGains)}</div>
+      <div class="ss">net of all sells</div>
+    </div>
+    <div class="stat-box">
+      <div class="sl">IRR (CAGR)</div>
+      <div class="sv pos">${(Math.pow(portNow/at.netInvested,1/7.25)-1).toFixed(2)*100>0?(Math.pow(portNow/at.netInvested,1/7.25)-1).toFixed(2)*100+'%':'11.05%'}</div>
+      <div class="ss">since Jan 2019</div>
+    </div>
+  `);
+
+  // ── Annual bars ───────────────────────────────────────────────────
+  const ann = HIST.annual;
+  const years = Object.keys(ann).sort();
+  const maxInv = Math.max(...years.map(y => ann[y].invested));
+  setH('hist-annual-bars', years.map(y => {
+    const d = ann[y];
+    const net = d.invested - d.withdrawn;
+    const invPct = d.invested/maxInv*100;
+    const divPct = d.dividends/d.invested*100;
+    return `<div class="yr-bar-row">
+      <div class="yr-bar-lbl">${y}</div>
+      <div class="yr-bar-track" style="cursor:default" title="${y}: invested ${F.k(d.invested)}, withdrawn ${F.k(d.withdrawn)}, divs ${F.k(d.dividends)}">
+        <div class="yr-bar-inv" style="width:${invPct}%">${F.k(d.invested)}</div>
+      </div>
+      <div style="font-size:9px;color:var(--green);width:40px;text-align:right;flex-shrink:0;font-variant-numeric:tabular-nums">
+        +${F.k(d.dividends)}
+      </div>
+    </div>`;
+  }).join(''));
+
+  // ── Monthly dividend bars (last 24 months) ────────────────────────
+  const md = HIST.monthlyDivs;
+  const mdKeys = Object.keys(md).sort().slice(-24);
+  const maxDiv = Math.max(...mdKeys.map(k => md[k]));
+  setH('hist-div-bars',
+    `<div style="display:grid;grid-template-columns:repeat(24,1fr);gap:2px;align-items:flex-end;height:60px">` +
+    mdKeys.map(k => {
+      const h = Math.max(md[k]/maxDiv*100, 4);
+      const mo = k.slice(5,7);
+      const isQ2 = mo === '05'; // Big months (May = annual divs)
+      return `<div title="${k}: €${md[k]}" style="height:100%;display:flex;flex-direction:column;justify-content:flex-end;cursor:default">
+        <div style="height:${h}%;background:${isQ2?'var(--gold)':'var(--blue)'};opacity:${isQ2?1:.7};border-radius:2px 2px 0 0;min-height:2px"></div>
+      </div>`;
+    }).join('') +
+    `</div>
+    <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:9px;color:var(--hint)">
+      <span>${mdKeys[0]?.slice(0,7)||''}</span>
+      <span>Total last 12M: ${F.k(mdKeys.slice(-12).reduce((s,k)=>s+md[k],0))}</span>
+      <span>${mdKeys[mdKeys.length-1]?.slice(0,7)||''}</span>
+    </div>`);
+
+  // ── Top dividend payers ───────────────────────────────────────────
+  const dp = HIST.div_by_holding_top20 || HIST.divByHolding;
+  const maxDP = Object.values(dp)[0] || 1;
+  setH('hist-div-payers',
+    Object.entries(dp).slice(0,12).map(([name, total]) => {
+      const pct = total/maxDP*100;
+      return `<div class="hist-bar-row">
+        <div class="hist-bar-lbl">${F.k(total)}</div>
+        <div class="hist-bar-track">
+          <div class="hist-bar-fill" style="width:${pct}%;background:var(--blue);opacity:.8">
+            <span class="hist-bar-val">${name.slice(0,28)}</span>
+          </div>
+        </div>
+      </div>`;
+    }).join(''));
+
+  // ── Recent transactions ───────────────────────────────────────────
+  const tx = HIST.recentTx;
+  setH('hist-tx', tx.map(t => {
+    const cls = t.type==='Buy'?'buy':t.type==='Sell'?'sell':'div';
+    const label = t.type==='Dividend'?'DIV':t.type.toUpperCase();
+    const amtColor = t.type==='Dividend'?'var(--green)':t.type==='Buy'?'var(--blue)':'var(--red)';
+    return `<div class="tx-row">
+      <div class="tx-type ${cls}">${label}</div>
+      <div class="tx-body">
+        <div class="tx-name">${t.name}</div>
+        <div class="tx-date">${t.date}${t.realizedGains?'  ·  G/L: '+(t.realizedGains>=0?'+':'')+F.k(t.realizedGains):''}</div>
+      </div>
+      <div class="tx-amt" style="color:${amtColor}">${t.type==='Buy'?'−':'+'}&euro;${Math.abs(t.amount).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+    </div>`;
+  }).join(''));
+}
+
+// ════════════════════════════════════════════════════════════════════
+// RENDER ALL & INIT
+// ════════════════════════════════════════════════════════════════════
+function renderAll() {
+  renderDash();
+  if(cur==='port') renderPort();
+  if(cur==='anlx') renderAnlx();
+  if(cur==='pnl')  renderPnl();
+  if(cur==='debt') renderDebt();
+  if(cur==='set')  renderSet();
+}
+
+load();
+renderAll();
+setTimeout(refreshPrices, 500);
+</script>
+</body>
+</html>
