@@ -302,52 +302,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue'
 .yr-bar-div{position:absolute;right:0;top:0;height:100%;background:rgba(34,197,94,.5);display:flex;align-items:center;padding-right:4px;font-size:9px;color:rgba(255,255,255,.8)}
 
 
-#po{position:fixed;inset:0;background:#07111f;z-index:9999;display:flex;
-  flex-direction:column;align-items:center;justify-content:center;
-  font-family:-apple-system,BlinkMacSystemFont,sans-serif;color:#e8e3da}
-#po h1{color:#c9962e;font-size:22px;font-weight:800;margin-bottom:6px}
-#po p{color:#6e7e98;font-size:11px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:36px}
-#po-dots{display:flex;gap:14px;margin-bottom:32px}
-#po-dots div{width:14px;height:14px;border-radius:50%;border:2px solid rgba(255,255,255,.2);transition:all .15s}
-#po-dots div.on{background:#c9962e;border-color:#c9962e}
-#po-dots div.er{background:#ef4444;border-color:#ef4444}
-#po-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:240px}
-#po-pad button{height:64px;border-radius:16px;border:1px solid rgba(255,255,255,.13);
-  background:#0f1e32;color:#e8e3da;font-size:22px;font-weight:500;cursor:pointer;
-  font-family:inherit;transition:background .1s,transform .1s}
-#po-pad button:active{background:#162640;transform:scale(.93)}
-#po-pad .bd{font-size:14px;color:#6e7e98}
-#po-pad .bk{border:none;background:none;cursor:default}
-#po-msg{color:#ef4444;font-size:12px;margin-top:14px;height:16px}
-#po-rst{color:#3a4d66;font-size:11px;margin-top:20px;cursor:pointer;text-decoration:underline}
 </style>
 </head>
 <body>
 
 
-<div id="po">
-  <h1>Finance OS</h1>
-  <p>Philip &amp; Teresa</p>
-  <div id="po-dots">
-    <div id="dot0"></div><div id="dot1"></div>
-    <div id="dot2"></div><div id="dot3"></div>
-  </div>
-  <div id="po-pad">
-    <button type="button">1</button>
-    <button type="button">2</button>
-    <button type="button">3</button>
-    <button type="button">4</button>
-    <button type="button">5</button>
-    <button type="button">6</button>
-    <button type="button">7</button>
-    <button type="button">8</button>
-    <button type="button">9</button>
-    <button type="button" class="bk"></button>
-    <button type="button">0</button>
-    <button type="button" class="bd">DEL</button>
-  </div>
-  <div id="po-msg"></div>
-  <div id="po-rst">Forgot PIN?</div>
 </div>
 <!-- TOPBAR -->
 <div class="tb">
@@ -532,31 +491,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue'
 <div class="toast" id="toast"></div>
 
 <script>
-var PE="";
-function PD(e){for(var i=0;i<4;i++){var d=document.getElementById("dot"+i);d.className=i<PE.length?(e?"er":"on"):"";}}
-function PU(){sessionStorage.setItem("fok","1");document.getElementById("po").style.display="none";}
-function PS(){
-  var s=localStorage.getItem("fpin");
-  if(!s){localStorage.setItem("fpin",PE);document.getElementById("po-msg").textContent="PIN set";setTimeout(PU,400);return;}
-  if(PE===s){PU();return;}
-  PD(true);document.getElementById("po-msg").textContent="Incorrect PIN";
-  setTimeout(function(){PE="";PD(false);document.getElementById("po-msg").textContent="";},800);
-}
-document.getElementById("po-pad").addEventListener("click",function(e){
-  var b=e.target;if(b.tagName!=="BUTTON"||b.className==="bk")return;
-  if(b.className==="bd"){if(PE.length>0){PE=PE.slice(0,-1);PD(false);}return;}
-  if(PE.length>=4)return;
-  PE+=b.textContent.trim();PD(false);if(PE.length===4)PS();
-});
-document.getElementById("po-rst").addEventListener("click",function(){
-  if(confirm("Clear PIN? Your data is kept.")){localStorage.removeItem("fpin");sessionStorage.removeItem("fok");PE="";PD(false);document.getElementById("po-msg").textContent="";}
-});
-document.addEventListener("keydown",function(e){
-  if(!document.getElementById("po")||document.getElementById("po").style.display==="none")return;
-  if(e.key>="0"&&e.key<="9"&&PE.length<4){PE+=e.key;PD(false);if(PE.length===4)PS();}
-  if(e.key==="Backspace"&&PE.length>0){PE=PE.slice(0,-1);PD(false);}
-});
-if(sessionStorage.getItem("fok"))document.getElementById("po").style.display="none";
+var _pw=localStorage.getItem("fos_pw");
+if(!_pw){_pw=prompt("Set a password for Finance OS (you only do this once):");if(_pw)localStorage.setItem("fos_pw",_pw);else _pw="";}
+else{var _try=prompt("Finance OS — enter password:");if(_try!==_pw){alert("Incorrect");document.body.innerHTML="<p style='color:#fff;text-align:center;margin-top:40vh;font-family:sans-serif'>Incorrect password. Refresh to try again.</p>";throw new Error("auth");}}
 
 
 
