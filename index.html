@@ -7,7 +7,20 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Finance OS">
 <meta name="theme-color" content="#0a1628">
-<link rel="manifest" href="manifest.json">
+<link rel="manifest" href="data:application/json,{
+  &quot;name&quot;: &quot;Finance OS — Philip & Teresa&quot;,
+  &quot;short_name&quot;: &quot;Finance OS&quot;,
+  &quot;description&quot;: &quot;Personal finance and portfolio management&quot;,
+  &quot;start_url&quot;: &quot;.&quot;,
+  &quot;display&quot;: &quot;standalone&quot;,
+  &quot;background_color&quot;: &quot;#0a1628&quot;,
+  &quot;theme_color&quot;: &quot;#0a1628&quot;,
+  &quot;icons&quot;: [{
+    &quot;src&quot;: &quot;data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230a1628'/><text y='68' x='50' text-anchor='middle' font-size='55' font-family='system-ui' fill='%23c9962e'>F</text></svg>&quot;,
+    &quot;sizes&quot;: &quot;any&quot;,
+    &quot;type&quot;: &quot;image/svg+xml&quot;
+  }]
+}">
 <title>Finance OS</title>
 <style>
 :root{
@@ -323,22 +336,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue'
     <div class="pin-dot" id="pd2"></div>
     <div class="pin-dot" id="pd3"></div>
   </div>
-  <div class="pin-grid">
-    <button class="pin-key" onclick="pinKey('1')">1</button>
-    <button class="pin-key" onclick="pinKey('2')">2</button>
-    <button class="pin-key" onclick="pinKey('3')">3</button>
-    <button class="pin-key" onclick="pinKey('4')">4</button>
-    <button class="pin-key" onclick="pinKey('5')">5</button>
-    <button class="pin-key" onclick="pinKey('6')">6</button>
-    <button class="pin-key" onclick="pinKey('7')">7</button>
-    <button class="pin-key" onclick="pinKey('8')">8</button>
-    <button class="pin-key" onclick="pinKey('9')">9</button>
+  <div class="pin-grid" id="pin-grid">
+    <button class="pin-key" data-pin="1">1</button>
+    <button class="pin-key" data-pin="2">2</button>
+    <button class="pin-key" data-pin="3">3</button>
+    <button class="pin-key" data-pin="4">4</button>
+    <button class="pin-key" data-pin="5">5</button>
+    <button class="pin-key" data-pin="6">6</button>
+    <button class="pin-key" data-pin="7">7</button>
+    <button class="pin-key" data-pin="8">8</button>
+    <button class="pin-key" data-pin="9">9</button>
     <button class="pin-key empty"></button>
-    <button class="pin-key" onclick="pinKey('0')">0</button>
-    <button class="pin-key del" onclick="pinDel()">⌫</button>
+    <button class="pin-key" data-pin="0">0</button>
+    <button class="pin-key del" data-pin="del">DEL</button>
   </div>
   <div class="pin-err" id="pin-err"></div>
-  <div class="pin-hint" id="pin-hint" onclick="pinForgot()">Forgot PIN?</div>
+  <div class="pin-hint" id="pin-hint" id="pin-hint-btn">Forgot PIN?</div>
 </div>
 
 <!-- TOPBAR -->
@@ -558,6 +571,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue'
       document.getElementById('pin-err').textContent = '';
     }, 800);
   }
+
+  // Use event delegation — works even if onclick attrs get mangled by editors
+  document.getElementById('pin-grid').addEventListener('click', function(e) {
+    const btn = e.target.closest('[data-pin]');
+    if (!btn) return;
+    const v = btn.getAttribute('data-pin');
+    if (v === 'del') pinDel();
+    else pinKey(v);
+  });
+
+  document.getElementById('pin-hint-btn').addEventListener('click', pinForgot);
 
   window.pinKey = function(digit) {
     if (entry.length >= 4) return;
