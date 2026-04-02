@@ -301,59 +301,54 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue'
 .yr-bar-inv{height:100%;background:rgba(59,130,246,.35);border-radius:3px;display:flex;align-items:center;padding-left:5px;font-size:9px;color:rgba(255,255,255,.6);white-space:nowrap;font-variant-numeric:tabular-nums}
 .yr-bar-div{position:absolute;right:0;top:0;height:100%;background:rgba(34,197,94,.5);display:flex;align-items:center;padding-right:4px;font-size:9px;color:rgba(255,255,255,.8)}
 
-/* ── PIN LOCK ── */
-.pin-screen{position:fixed;inset:0;background:var(--bg);z-index:999;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px}
-.pin-logo{font-size:22px;font-weight:800;color:var(--gold);letter-spacing:-.02em;margin-bottom:6px}
-.pin-sub{font-size:11px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:40px}
-.pin-dots{display:flex;gap:14px;margin-bottom:36px}
-.pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--border2);
-  transition:all .15s}
-.pin-dot.filled{background:var(--gold);border-color:var(--gold)}
-.pin-dot.error{background:var(--red);border-color:var(--red)}
-.pin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:240px}
-.pin-key{height:64px;border-radius:var(--rl);border:1px solid var(--border2);
-  background:var(--card);color:var(--text);font-size:22px;font-weight:500;
-  cursor:pointer;transition:all .12s;font-family:inherit;display:flex;
-  align-items:center;justify-content:center}
-.pin-key:active{background:var(--card2);transform:scale(.94)}
-.pin-key.del{font-size:16px;color:var(--muted)}
-.pin-key.empty{border:none;background:none;cursor:default}
-.pin-err{font-size:12px;color:var(--red);margin-top:16px;height:16px;text-align:center}
-.pin-hint{font-size:11px;color:var(--hint);margin-top:20px;text-align:center;line-height:1.6;cursor:pointer}
+
+#po{position:fixed;inset:0;background:#07111f;z-index:9999;display:flex;
+  flex-direction:column;align-items:center;justify-content:center;
+  font-family:-apple-system,BlinkMacSystemFont,sans-serif;color:#e8e3da}
+#po h1{color:#c9962e;font-size:22px;font-weight:800;margin-bottom:6px}
+#po p{color:#6e7e98;font-size:11px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:36px}
+#po-dots{display:flex;gap:14px;margin-bottom:32px}
+#po-dots div{width:14px;height:14px;border-radius:50%;border:2px solid rgba(255,255,255,.2);transition:all .15s}
+#po-dots div.on{background:#c9962e;border-color:#c9962e}
+#po-dots div.er{background:#ef4444;border-color:#ef4444}
+#po-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:240px}
+#po-pad button{height:64px;border-radius:16px;border:1px solid rgba(255,255,255,.13);
+  background:#0f1e32;color:#e8e3da;font-size:22px;font-weight:500;cursor:pointer;
+  font-family:inherit;transition:background .1s,transform .1s}
+#po-pad button:active{background:#162640;transform:scale(.93)}
+#po-pad .bd{font-size:14px;color:#6e7e98}
+#po-pad .bk{border:none;background:none;cursor:default}
+#po-msg{color:#ef4444;font-size:12px;margin-top:14px;height:16px}
+#po-rst{color:#3a4d66;font-size:11px;margin-top:20px;cursor:pointer;text-decoration:underline}
 </style>
 </head>
 <body>
 
 
-<!-- PIN LOCK -->
-<div class="pin-screen" id="pin-screen">
-  <div class="pin-logo">Finance OS</div>
-  <div class="pin-sub">Philip & Teresa</div>
-  <div class="pin-dots">
-    <div class="pin-dot" id="pd0"></div>
-    <div class="pin-dot" id="pd1"></div>
-    <div class="pin-dot" id="pd2"></div>
-    <div class="pin-dot" id="pd3"></div>
+<div id="po">
+  <h1>Finance OS</h1>
+  <p>Philip &amp; Teresa</p>
+  <div id="po-dots">
+    <div id="dot0"></div><div id="dot1"></div>
+    <div id="dot2"></div><div id="dot3"></div>
   </div>
-  <div class="pin-grid" id="pin-grid">
-    <button class="pin-key" data-pin="1">1</button>
-    <button class="pin-key" data-pin="2">2</button>
-    <button class="pin-key" data-pin="3">3</button>
-    <button class="pin-key" data-pin="4">4</button>
-    <button class="pin-key" data-pin="5">5</button>
-    <button class="pin-key" data-pin="6">6</button>
-    <button class="pin-key" data-pin="7">7</button>
-    <button class="pin-key" data-pin="8">8</button>
-    <button class="pin-key" data-pin="9">9</button>
-    <button class="pin-key empty"></button>
-    <button class="pin-key" data-pin="0">0</button>
-    <button class="pin-key del" data-pin="del">DEL</button>
+  <div id="po-pad">
+    <button type="button">1</button>
+    <button type="button">2</button>
+    <button type="button">3</button>
+    <button type="button">4</button>
+    <button type="button">5</button>
+    <button type="button">6</button>
+    <button type="button">7</button>
+    <button type="button">8</button>
+    <button type="button">9</button>
+    <button type="button" class="bk"></button>
+    <button type="button">0</button>
+    <button type="button" class="bd">DEL</button>
   </div>
-  <div class="pin-err" id="pin-err"></div>
-  <div class="pin-hint" id="pin-hint" id="pin-hint-btn">Forgot PIN?</div>
+  <div id="po-msg"></div>
+  <div id="po-rst">Forgot PIN?</div>
 </div>
-
 <!-- TOPBAR -->
 <div class="tb">
   <div class="tb-brand">Finance OS <small>Philip & Teresa</small></div>
@@ -537,105 +532,33 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue'
 <div class="toast" id="toast"></div>
 
 <script>
+var PE="";
+function PD(e){for(var i=0;i<4;i++){var d=document.getElementById("dot"+i);d.className=i<PE.length?(e?"er":"on"):"";}}
+function PU(){sessionStorage.setItem("fok","1");document.getElementById("po").style.display="none";}
+function PS(){
+  var s=localStorage.getItem("fpin");
+  if(!s){localStorage.setItem("fpin",PE);document.getElementById("po-msg").textContent="PIN set";setTimeout(PU,400);return;}
+  if(PE===s){PU();return;}
+  PD(true);document.getElementById("po-msg").textContent="Incorrect PIN";
+  setTimeout(function(){PE="";PD(false);document.getElementById("po-msg").textContent="";},800);
+}
+document.getElementById("po-pad").addEventListener("click",function(e){
+  var b=e.target;if(b.tagName!=="BUTTON"||b.className==="bk")return;
+  if(b.className==="bd"){if(PE.length>0){PE=PE.slice(0,-1);PD(false);}return;}
+  if(PE.length>=4)return;
+  PE+=b.textContent.trim();PD(false);if(PE.length===4)PS();
+});
+document.getElementById("po-rst").addEventListener("click",function(){
+  if(confirm("Clear PIN? Your data is kept.")){localStorage.removeItem("fpin");sessionStorage.removeItem("fok");PE="";PD(false);document.getElementById("po-msg").textContent="";}
+});
+document.addEventListener("keydown",function(e){
+  if(!document.getElementById("po")||document.getElementById("po").style.display==="none")return;
+  if(e.key>="0"&&e.key<="9"&&PE.length<4){PE+=e.key;PD(false);if(PE.length===4)PS();}
+  if(e.key==="Backspace"&&PE.length>0){PE=PE.slice(0,-1);PD(false);}
+});
+if(sessionStorage.getItem("fok"))document.getElementById("po").style.display="none";
 
-// ════════════════════════════════════════════════════════════════════
-// PIN LOCK
-// ════════════════════════════════════════════════════════════════════
-(function() {
-  const KEY     = 'fos_pin';
-  const SESSION = 'fos_unlocked';
-  let entry = '';
 
-  function getPin()  { return localStorage.getItem(KEY); }
-  function setPin(p) { localStorage.setItem(KEY, p); }
-
-  function updateDots(shake) {
-    for (let i=0; i<4; i++) {
-      const d = document.getElementById('pd'+i);
-      d.classList.toggle('filled', i < entry.length);
-      d.classList.toggle('error', shake);
-    }
-  }
-
-  function unlock() {
-    sessionStorage.setItem(SESSION, '1');
-    document.getElementById('pin-screen').style.display = 'none';
-  }
-
-  function shake() {
-    updateDots(true);
-    document.getElementById('pin-err').textContent = 'Incorrect PIN';
-    setTimeout(() => {
-      entry = '';
-      updateDots(false);
-      document.getElementById('pin-err').textContent = '';
-    }, 800);
-  }
-
-  // Use event delegation — works even if onclick attrs get mangled by editors
-  document.getElementById('pin-grid').addEventListener('click', function(e) {
-    const btn = e.target.closest('[data-pin]');
-    if (!btn) return;
-    const v = btn.getAttribute('data-pin');
-    if (v === 'del') pinDel();
-    else pinKey(v);
-  });
-
-  document.getElementById('pin-hint-btn').addEventListener('click', pinForgot);
-
-  window.pinKey = function(digit) {
-    if (entry.length >= 4) return;
-    entry += digit;
-    updateDots(false);
-
-    if (entry.length === 4) {
-      const stored = getPin();
-      if (!stored) {
-        // First time — set this as the PIN
-        setPin(entry);
-        document.getElementById('pin-hint').textContent = 'PIN set. Remember it — there's no recovery without resetting data.';
-        setTimeout(unlock, 400);
-      } else if (entry === stored) {
-        unlock();
-      } else {
-        shake();
-      }
-    }
-  };
-
-  window.pinDel = function() {
-    if (entry.length > 0) {
-      entry = entry.slice(0, -1);
-      updateDots(false);
-    }
-  };
-
-  window.pinForgot = function() {
-    const stored = getPin();
-    if (!stored) return;
-    if (confirm('Reset PIN? This will NOT delete your financial data — only the PIN will be cleared. You\'ll set a new one on next load.')) {
-      localStorage.removeItem(KEY);
-      sessionStorage.removeItem(SESSION);
-      entry = '';
-      updateDots(false);
-      document.getElementById('pin-hint').textContent = 'PIN cleared. Enter a new 4-digit PIN.';
-      document.getElementById('pin-err').textContent = '';
-    }
-  };
-
-  // Check session (stays unlocked for the current browser tab)
-  if (sessionStorage.getItem(SESSION)) {
-    document.getElementById('pin-screen').style.display = 'none';
-  }
-
-  // Keyboard support
-  document.addEventListener('keydown', function(e) {
-    const ps = document.getElementById('pin-screen');
-    if (ps.style.display === 'none') return;
-    if (e.key >= '0' && e.key <= '9') pinKey(e.key);
-    if (e.key === 'Backspace') pinDel();
-  });
-})();
 
 // ════════════════════════════════════════════════════════════════════
 // DEFAULTS
