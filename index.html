@@ -882,9 +882,15 @@ function load() {
     const raw = localStorage.getItem('fos2');
     S = raw ? JSON.parse(raw) : deep(DEFAULTS);
   } catch(e) { S = deep(DEFAULTS); }
-  // Migrate: ensure all keys exist
-  if (!S.targets) S.targets = deep(DEFAULTS.targets);
+  // Migrate: ensure all keys exist and are valid
+  if (!S.targets)    S.targets    = deep(DEFAULTS.targets);
   if (!S.projection) S.projection = deep(DEFAULTS.projection);
+  // Always re-inject holdings from DEFAULTS to get latest positions/costs
+  // (user edits via the Edit modal are preserved in localStorage, but
+  //  stale/empty caches from old app versions are overwritten)
+  if (!S.holdings || !S.holdings.length || !S.holdings[0].cost) {
+    S.holdings = deep(DEFAULTS.holdings);
+  }
   [2022,2023,2024,2025,2026].forEach(y => {
     if (!S.pnl[y]) S.pnl[y] = deep(DEFAULTS.pnl[y]);
   });
@@ -2553,6 +2559,20 @@ function toast(msg) {
 load();
 renderAll();
 loadRiskCache();
+// Clear stale cache from old app versions
+(function() {
+  try {
+    const raw = localStorage.getItem('fos2');
+    if (raw) {
+      const d = JSON.parse(raw);
+      // If stored data has no holdings or version mismatch, clear it
+      if (!d.holdings || !d.holdings.length || !d.holdings[0] || !d.holdings[0].cost) {
+        localStorage.removeItem('fos2');
+        console.log('Cleared stale fos2 cache');
+      }
+    }
+  } catch(e) { localStorage.removeItem('fos2'); }
+})();
 load();
 renderAll();
 loadRiskCache();
