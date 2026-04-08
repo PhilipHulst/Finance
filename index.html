@@ -788,6 +788,7 @@ body{font-family:'DM Sans',system-ui,sans-serif;color:var(--t1);display:flex;fle
 <script>
 
 
+
 var _pw=localStorage.getItem("fos_pw");
 if(!_pw){_pw=prompt("Set a password for Finance OS:");if(_pw)localStorage.setItem("fos_pw",_pw);else _pw="";}
 else{var _try=prompt("Finance OS — enter password:");if(_try!==_pw){alert("Incorrect");document.body.innerHTML="<p style='color:#fff;text-align:center;margin-top:40vh;font-family:sans-serif'>Incorrect. Refresh to try again.</p>";throw new Error("auth");}}
@@ -882,13 +883,15 @@ function load() {
     const raw = localStorage.getItem('fos2');
     S = raw ? JSON.parse(raw) : deep(DEFAULTS);
   } catch(e) { S = deep(DEFAULTS); }
-  // Migrate: ensure all keys exist and are valid
+  // Validate and migrate all keys
+  if (!S.bs)         S.bs         = deep(DEFAULTS.bs);
+  if (!S.mortgage)   S.mortgage   = deep(DEFAULTS.mortgage);
   if (!S.targets)    S.targets    = deep(DEFAULTS.targets);
   if (!S.projection) S.projection = deep(DEFAULTS.projection);
-  // Always re-inject holdings from DEFAULTS to get latest positions/costs
-  // (user edits via the Edit modal are preserved in localStorage, but
-  //  stale/empty caches from old app versions are overwritten)
-  if (!S.holdings || !S.holdings.length || !S.holdings[0].cost) {
+  if (!S.pnl)        S.pnl        = {};
+  // Holdings: always validate — stale cache from old versions had broken/empty holdings
+  if (!S.holdings || !Array.isArray(S.holdings) || S.holdings.length < 10 ||
+      !S.holdings[0] || typeof S.holdings[0].cost !== 'number') {
     S.holdings = deep(DEFAULTS.holdings);
   }
   [2022,2023,2024,2025,2026].forEach(y => {
@@ -1049,17 +1052,6 @@ function flags(h, pv) {
   if (h.div===0 && !['Passive','ETF','Gold','Crypto'].includes(h.sec)) fl.push({c:'flag-a',l:'NO DIV'});
   return fl;
 }
-
-const F = {
-  e: v => '€' + Math.round(v).toLocaleString('de-DE'),
-  k: v => v>=1e6 ? '€'+(v/1e6).toFixed(2)+'M' : v>=1000 ? '€'+(v/1000).toFixed(1)+'k' : '€'+Math.round(v),
-  p: v => (v>=0?'+':'')+v.toFixed(1)+'%',
-  p0:v => v.toFixed(1)+'%',
-  n2:v => v.toFixed(2),
-};
-
-const cc = v => v>0?'pos':v<0?'neg':'neu';
-
 
 function calcProj() {
   const p = S.projection;
@@ -1467,17 +1459,6 @@ async function fetchRiskData(forceRefresh = false) {
 
 
 // ─── Fallback: estimated metrics if fetch fails ───────────────────
-
-
-
-const SEC_COL_MAP = {
-  Tech:'#60a5fa',Energy:'#f59e0b',Passive:'#818cf8',Fin:'#34d399',Health:'#f472b6',
-  Ind:'#fb923c',Staples:'#a3e635',ETF:'#c084fc',Gold:'#fbbf24',Auto:'#94a3b8',
-  RE:'#2dd4bf',Disc:'#f87171',Media:'#9ca3af',Crypto:'#f59e0b',Other:'#6b7280'
-};
-
-
-
 
 
 // ════════════════════════════════════════════════════════════════════
@@ -2556,19 +2537,17 @@ function toast(msg) {
 // ════════════════════════════════════════════════════════════════════
 
 
-load();
-renderAll();
-loadRiskCache();
-// Clear stale cache from old app versions
+// ═══════════════════════════════════════════════════════
+// INIT — clear stale cache, load, render
+// ═══════════════════════════════════════════════════════
 (function() {
+  // Nuke any stale localStorage from old app versions
   try {
     const raw = localStorage.getItem('fos2');
     if (raw) {
       const d = JSON.parse(raw);
-      // If stored data has no holdings or version mismatch, clear it
       if (!d.holdings || !d.holdings.length || !d.holdings[0] || !d.holdings[0].cost) {
         localStorage.removeItem('fos2');
-        console.log('Cleared stale fos2 cache');
       }
     }
   } catch(e) { localStorage.removeItem('fos2'); }
