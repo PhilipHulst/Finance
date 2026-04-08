@@ -786,6 +786,8 @@ body{font-family:'DM Sans',system-ui,sans-serif;color:var(--t1);display:flex;fle
 
 
 <script>
+
+
 var _pw=localStorage.getItem("fos_pw");
 if(!_pw){_pw=prompt("Set a password for Finance OS:");if(_pw)localStorage.setItem("fos_pw",_pw);else _pw="";}
 else{var _try=prompt("Finance OS — enter password:");if(_try!==_pw){alert("Incorrect");document.body.innerHTML="<p style='color:#fff;text-align:center;margin-top:40vh;font-family:sans-serif'>Incorrect. Refresh to try again.</p>";throw new Error("auth");}}
@@ -891,6 +893,183 @@ function save() { localStorage.setItem('fos2', JSON.stringify(S)); }
 function deep(x) { return JSON.parse(JSON.stringify(x)); }
 function resetData() { S = deep(DEFAULTS); prices = {}; save(); renderAll(); toast('Reset ✓'); }
 
+
+function hv(h) {
+  const px = prices[h.t];
+  if (px != null) {
+    if (h.ccy === 'EUR') return h.sh * px;
+    if (h.ccy === 'USD') return h.sh * px * fx.USD;
+    if (h.ccy === 'GBP') return h.sh * (px / 100) * fx.GBP;
+  }
+  return h.lastPx || h.cost; // fallback: cost basis (0% gain shown, not fake 5%)
+}
+
+
+function portVal()    { return S.holdings.reduce((s,h) => s + hv(h), 0); }
+
+
+function totalDivs()  { return S.holdings.reduce((s,h) => s + h.div, 0); }
+
+
+function totalAssets(){ const b=S.bs; return portVal()+b.apartment+b.cash+b.pension+b.car+b.otherInv+b.invoice; }
+
+
+function totalLiab()  { const b=S.bs; return b.mortgage+b.steuern+b.ust+b.parentLoan+b.otherLiab; }
+
+
+function netWorth()   { return totalAssets() - totalLiab(); }
+
+
+function metrics() {
+  const pv = portVal();
+  const cost = S.holdings.reduce((s,h) => s+h.cost, 0);
+  const years = 7.25; // Jan 2019 → Apr 2026
+  const irr = pv > 0 && cost > 0 ? (Math.pow(pv/cost, 1/years) - 1) * 100 : 0;
+  const divYield = pv > 0 ? totalDivs()/pv*100 : 0;
+
+  // Weighted vol estimate: ETF 14%, single stock 25%, crypto 80%
+  const portVol = S.holdings.reduce((s,h) => {
+    const w = hv(h)/pv;
+    const vol = h.sec==='Crypto' ? 80 : ['Passive','ETF','Gold'].includes(h.sec) ? 14 : 25;
+    return s + vol * w;
+  }, 0) * (0.42 + 0.58/Math.sqrt(Math.min(S.holdings.length, 30)));
+
+  const rf = 3.5; // ECB risk-free approx
+  const bench = 11.2; // MSCI World CAGR 2019-2026 approx
+  const sharpe = portVol > 0 ? (irr - rf) / portVol : 0;
+  const beta = 0.87; // estimated for this portfolio composition
+  const treynor = beta > 0 ? (irr - rf) / beta : 0;
+  const alpha = irr - bench;
+  const te = 4.2; // estimated tracking error
+  const ir = te > 0 ? alpha / te : 0;
+
+  // HHI concentration (0–10000; <1000 = diversified)
+  const hhi = pv > 0 ? S.holdings.reduce((s,h) => { const w=hv(h)/pv*100; return s+w*w; }, 0) : 0;
+
+  // Parametric VaR 95% 1-month
+  const var95 = portVol / 100 * pv * 1.645 * Math.sqrt(1/12);
+
+  return { pv, cost, irr, divYield, portVol, sharpe, beta, treynor, alpha, ir, hhi, var95, years };
+}
+
+
+function buckets() {
+  const pv = portVal();
+  return Object.entries(S.targets.buckets).map(([name, cfg]) => {
+    const val = S.holdings.filter(h => cfg.secs.includes(h.sec)).reduce((s,h) => s+hv(h), 0);
+    const act = pv > 0 ? val/pv*100 : 0;
+    const drift = act - cfg.t;
+    const status = Math.abs(drift) <= S.targets.driftWarn ? 'ok'
+                 : Math.abs(drift) <= S.targets.driftWarn*2 ? 'warn' : 'over';
+    return { name, target:cfg.t, act, drift, color:cfg.col, status };
+  });
+}
+
+
+function sectors() {
+  const pv = portVal(), map = {};
+  S.holdings.forEach(h => { map[h.sec] = (map[h.sec]||0) + hv(h); });
+  return Object.entries(map).map(([s,v]) => ({s,v,p:pv>0?v/pv*100:0})).sort((a,b)=>b.v-a.v);
+}
+
+
+function geos() {
+  const pv = portVal(), map = {};
+  S.holdings.forEach(h => {
+    const v = hv(h);
+    let g = 'Global ETF';
+    if (['IWDA.AS','XDWD.DE','IUSA.DE','ISPA.DE'].includes(h.t)) g='Global ETF';
+    else if (['4GLD.DE'].includes(h.t)) g='Real Asset';
+    else if (h.sec==='Crypto') g='Crypto';
+    else if (h.t.endsWith('.L')) g='UK';
+    else if (h.t.endsWith('.DE')||h.t.endsWith('.PA')||h.t.endsWith('.AS')||h.t==='DBXD.DE') g='Europe';
+    else if (['TSM','SMSN.IL'].includes(h.t)) g='Asia';
+    else g='North America';
+    map[g] = (map[g]||0)+v;
+  });
+  return Object.entries(map).map(([g,v])=>({g,v,p:pv>0?v/pv*100:0})).sort((a,b)=>b.v-a.v);
+}
+
+
+function warnings() {
+  const pv = portVal(), m = metrics(), T = S.targets;
+  const ws = [];
+
+  // Bucket drift
+  buckets().filter(b=>b.status!=='ok').forEach(b=>{
+    const sev = b.status==='over'?'r':'a';
+    ws.push({s:sev, msg:`${b.name}: ${b.act.toFixed(1)}% actual vs ${b.target}% target (${b.drift>0?'+':''}${b.drift.toFixed(1)}% drift)`});
+  });
+
+  // HHI
+  if (m.hhi > 1500) ws.push({s:'r',msg:`High concentration — HHI ${Math.round(m.hhi)} (>1500). Consider diversifying further.`});
+  else if (m.hhi > 1000) ws.push({s:'a',msg:`Moderate concentration — HHI ${Math.round(m.hhi)}. Monitor single-name risk.`});
+
+  // Max position
+  const sorted = [...S.holdings].map(h=>({...h,v:hv(h)})).sort((a,b)=>b.v-a.v);
+  if (sorted.length && sorted[0].v/pv*100 > T.maxPos) {
+    ws.push({s:'a',msg:`${sorted[0].name} is ${(sorted[0].v/pv*100).toFixed(1)}% — above ${T.maxPos}% single-position cap.`});
+  }
+
+  // Div yield
+  if (m.divYield < T.minDivYield) {
+    ws.push({s:'a',msg:`Dividend yield ${m.divYield.toFixed(1)}% — below ${T.minDivYield}% target. Build income names.`});
+  }
+
+  // Crypto
+  const cryptoW = S.holdings.filter(h=>h.sec==='Crypto').reduce((s,h)=>s+hv(h),0)/pv*100;
+  if (cryptoW > 2) ws.push({s:'r',msg:`Crypto is ${cryptoW.toFixed(1)}% of portfolio — inconsistent with value mandate.`});
+
+  // Underwater positions >25%
+  S.holdings.forEach(h => {
+    if (hv(h) < h.cost * 0.75) {
+      ws.push({s:'a',msg:`${h.name} down ${((1-hv(h)/h.cost)*100).toFixed(0)}% — review thesis or crystallise loss.`});
+    }
+  });
+
+  if (ws.length === 0) ws.push({s:'g',msg:'No critical alerts. Portfolio within acceptable parameters.'});
+  return ws;
+}
+
+
+function flags(h, pv) {
+  const v = hv(h), wt = pv>0?v/pv*100:0;
+  const fl = [];
+  if (wt > S.targets.maxPos)   fl.push({c:'flag-r',l:`OVERWEIGHT`});
+  if (v < h.cost*0.75)         fl.push({c:'flag-r',l:`−${((1-v/h.cost)*100).toFixed(0)}%`});
+  else if (v > h.cost*2)       fl.push({c:'flag-g',l:`×${(v/h.cost).toFixed(1)}`});
+  if (h.sec==='Crypto')        fl.push({c:'flag-a',l:'SPECULATIVE'});
+  if (h.div>0 && v>0 && h.div/v*100>6) fl.push({c:'flag-b',l:`${(h.div/v*100).toFixed(1)}% YOC`});
+  if (h.div===0 && !['Passive','ETF','Gold','Crypto'].includes(h.sec)) fl.push({c:'flag-a',l:'NO DIV'});
+  return fl;
+}
+
+const F = {
+  e: v => '€' + Math.round(v).toLocaleString('de-DE'),
+  k: v => v>=1e6 ? '€'+(v/1e6).toFixed(2)+'M' : v>=1000 ? '€'+(v/1000).toFixed(1)+'k' : '€'+Math.round(v),
+  p: v => (v>=0?'+':'')+v.toFixed(1)+'%',
+  p0:v => v.toFixed(1)+'%',
+  n2:v => v.toFixed(2),
+};
+
+const cc = v => v>0?'pos':v<0?'neg':'neu';
+
+
+function calcProj() {
+  const p = S.projection;
+  let pv=portVal(), apt=S.bs.apartment, mort=S.bs.mortgage;
+  return [2026,2027,2028,2029,2030].map((yr,i)=>{
+    const inc = p.monthlyRev*12*Math.pow(1+p.revGrowth/100,i) + p.rental*12 + p.teresaMonthly*12;
+    const exp = p.monthlyExp*12*Math.pow(1.02,i) + 8148*Math.pow(1.03,i) + 8400;
+    pv  = pv*(1+p.portReturn/100) + p.newCapital;
+    apt = apt*(1+p.propGrowth/100);
+    mort = Math.max(mort - mort*S.mortgage.rate, 0);
+    const nw = pv + (apt-mort) + S.bs.cash;
+    return {yr, inc, exp, sur:inc-exp, pv, nw};
+  });
+}
+
+
 // COMPUTED
 function drawDonut(svgId, legendId, data, size) {
   const svg = document.getElementById(svgId);
@@ -915,8 +1094,8 @@ function drawDonut(svgId, legendId, data, size) {
   svg.innerHTML=paths;
   leg.innerHTML=data.map(d=>`<div style="display:flex;align-items:center;gap:5px;margin-bottom:4px">
     <div style="width:8px;height:8px;border-radius:2px;background:${d.color};flex-shrink:0"></div>
-    <span style="color:var(--tx3);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.name}</span>
-    <span style="color:var(--tx2);font-variant-numeric:tabular-nums">${(d.v/total*100).toFixed(1)}%</span>
+    <span style="color:var(--t3);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.name}</span>
+    <span style="color:var(--t2);font-variant-numeric:tabular-nums">${(d.v/total*100).toFixed(1)}%</span>
   </div>`).join('');
 }
 function drawDividendSparkline(containerId, monthlyData) {
@@ -937,7 +1116,7 @@ function drawDividendSparkline(containerId, monthlyData) {
     <polyline points="${pts}" fill="none" stroke="var(--g1)" stroke-width="1.5" stroke-linejoin="round"/>
     ${vals.map((v,i)=>v===maxV?`<circle cx="${pad+i*(W-pad*2)/(vals.length-1)}" cy="${H-pad-(v/maxV)*(H-pad*2)}" r="3" fill="var(--g1)"/>`:``).join('')}
   </svg>
-  <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--tx3);margin-top:4px">
+  <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--t3);margin-top:4px">
     <span>${keys[0]?.slice(0,7)||''}</span>
     <span>${keys[keys.length-1]?.slice(0,7)||''}</span>
   </div>`;
@@ -1996,7 +2175,7 @@ function runScreener(params) {
         <div class="score-lbl">/ 100</div>
       </div>
       <div style="font-size:14px;font-weight:700;color:${vc};margin-bottom:4px">${verdict}</div>
-      <div style="font-size:11px;color:var(--tx3)">${name} · ${tick}</div>
+      <div style="font-size:11px;color:var(--t3)">${name} · ${tick}</div>
     </div>
     <div style="border-top:1px solid var(--b1);padding-top:10px">
       ${results.map(c=>`
@@ -2006,12 +2185,12 @@ function runScreener(params) {
         </div>`).join('')}
     </div>
     <div class="size-box">
-      <div style="font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--tx3);
+      <div style="font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--t3);
         font-weight:600;margin-bottom:10px">Position Sizing Recommendation</div>
-      <div class="size-row"><span style="color:var(--tx3)">Portfolio value</span><span>${F.k(pv)}</span></div>
-      <div class="size-row"><span style="color:var(--tx3)">Equal-weight baseline (1/${n+1})</span><span>${baseWt.toFixed(1)}%</span></div>
-      <div class="size-row"><span style="color:var(--tx3)">Quality-adjusted</span><span>${adjWt.toFixed(1)}%</span></div>
-      <div class="size-row"><span style="color:var(--tx3)">Capped at ${S.targets.maxPos}% limit</span><span>${capWt.toFixed(1)}%</span></div>
+      <div class="size-row"><span style="color:var(--t3)">Portfolio value</span><span>${F.k(pv)}</span></div>
+      <div class="size-row"><span style="color:var(--t3)">Equal-weight baseline (1/${n+1})</span><span>${baseWt.toFixed(1)}%</span></div>
+      <div class="size-row"><span style="color:var(--t3)">Quality-adjusted</span><span>${adjWt.toFixed(1)}%</span></div>
+      <div class="size-row"><span style="color:var(--t3)">Capped at ${S.targets.maxPos}% limit</span><span>${capWt.toFixed(1)}%</span></div>
       <div class="size-row"><span>Recommended position</span><span style="color:var(--g1)">${F.k(recEur)}</span></div>
     </div>
     ${secWarn?`<div class="alert alert-a" style="margin:0 0 10px">
@@ -2246,28 +2425,7 @@ function openModal(type, ...args) {
   }
 }
 
-function submitScreener() {
-  const g = id => document.getElementById(id);
-  const params = {
-    name:g('sc_name').value.trim()||'Stock',
-    tick:g('sc_tick').value.trim()||'TICK',
-    ccy: g('sc_ccy').value,
-    pe:  +g('sc_pe').value||999,
-    pb:  +g('sc_pb').value||999,
-    dy:  +g('sc_dy').value||0,
-    pr:  +g('sc_pr').value||100,
-    roe: +g('sc_roe').value||0,
-    de:  +g('sc_de').value||999,
-    rg:  +g('sc_rg').value||0,
-    mc:  +g('sc_mc').value||0,
-    sec: g('sc_sec').value,
-    moat:g('sc_moat').value,
-    earn:g('sc_earn').value,
-    divt:g('sc_divt').value,
-  };
-  document.getElementById('sh-title').textContent = 'Screener — '+params.name;
-  document.getElementById('sh-body').innerHTML = runScreener(params);
-}
+
 
 function closeModal() { document.getElementById('ovl').classList.remove('on'); }
 function bgClose(e)   { if (e.target===document.getElementById('ovl')) closeModal(); }
@@ -2390,14 +2548,7 @@ function toast(msg) {
 // ════════════════════════════════════════════════════════════════════
 // RENDER ALL & INIT
 // ════════════════════════════════════════════════════════════════════
-function renderAll() {
-  renderDash();
-  if(cur==='port') renderPort();
-  if(cur==='anlx') renderAnlx();
-  if(cur==='pnl')  renderPnl();
-  if(cur==='debt') renderDebt();
-  if(cur==='set')  renderSet();
-}
+
 
 load();
 renderAll();
